@@ -80,15 +80,12 @@ def fijoDashboard(request):
     id = request.POST.get("fijoId")
     # id = str(id)
 
-
     # transacciones hechas por hoy
     transaccionesDiarias = Transacciones.objects.filter(idVendedor=id).values('fecha').annotate(conteo=Count('fecha'))
     temp_transaccionesDiarias = list(transaccionesDiarias)
     transaccionesDiariasArr = []
     for element in temp_transaccionesDiarias:
-        aux = []
-        aux.append(element['fecha'])
-        aux.append(element['conteo'])
+        aux = [element['fecha'], element['conteo']]
         transaccionesDiariasArr.append(aux)
     transaccionesDiariasArr = simplejson.dumps(transaccionesDiariasArr)
     # print(transaccionesDiariasArr)
