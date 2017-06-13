@@ -24,6 +24,7 @@ from django.core.files.storage import default_storage
 
 
 # Create your views here.
+# Inicio refactoriong
 def index(request):
     vendedores = []
     # lista de vendedores
