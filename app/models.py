@@ -78,7 +78,7 @@ class Categoria(models.Model):
     nombre = models.CharField(max_length=50)
 
 
-class Comida(models.Model):
+class Producto(models.Model):
     vendedor = models.ForeignKey(Vendedor)
     nombre = models.CharField(max_length=200)
     categorias = models.ManyToManyField(Categoria)
@@ -97,7 +97,7 @@ class Comida(models.Model):
         return ' '.join(temp)
 
     class Meta:
-        db_table = 'comida'
+        db_table = 'producto'
 
 '''
 Inicializar con:
@@ -134,21 +134,9 @@ class Favoritos(models.Model):
 
 class Transacciones(models.Model):
     vendedor = models.ForeignKey(Vendedor)
-    comida = models.ForeignKey(Comida)
+    producto = models.ForeignKey(Producto)
     cantidad = models.IntegerField()
     fecha = models.DateField()
 
     class Meta:
         db_table = 'transacciones'
-
-###### Borrar al modificar Views, lamentablemente muchas ######
-###### funciones dependen de esta linea al migrar.       ######
-class Imagen(models.Model):
-    id = models.AutoField(primary_key=True)
-    imagen = models.ImageField(upload_to='avatars')
-
-    def __str__(self):
-        return self.id
-
-    class Meta:
-        db_table = 'imagen'
