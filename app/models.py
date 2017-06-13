@@ -63,8 +63,8 @@ class Vendedor(models.Model):
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
 class VendedorFijo(Vendedor):
-    dias_ini = models.CharField(choices=DIAS)
-    dia_fin = models.CharField(choices=DIAS)
+    dias_ini = models.CharField(choices=DIAS,max_length=9)
+    dia_fin = models.CharField(choices=DIAS,max_length=9)
     hora_ini = models.TimeField()
     hora_fin = models.TimeField()
 
@@ -140,3 +140,15 @@ class Transacciones(models.Model):
 
     class Meta:
         db_table = 'transacciones'
+
+###### Borrar al modificar Views, lamentablemente muchas ######
+###### funciones dependen de esta linea al migrar.       ######
+class Imagen(models.Model):
+    id = models.AutoField(primary_key=True)
+    imagen = models.ImageField(upload_to='avatars')
+
+    def __str__(self):
+        return self.id
+
+    class Meta:
+        db_table = 'imagen'
