@@ -1123,7 +1123,7 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth.login(request, user)
-                return HttpResponseRedirect('home.html')
+                return HttpResponseRedirect(reverse('home'))
             else:
                 return render(request, 'app/login.html', {
                     'login_message': 'Su cuenta ha sido banneada', 'form': form, })
@@ -1141,11 +1141,11 @@ def home(request):
     user = Usuario.objects.get(user=request.user)
     if user.tipo == 1:
         return render(request, 'app/home.html', {'user': user})
-    vendor = Vendedor.objects.get(user=user)
+    vendor = Vendedor.objects.get(usuario=user)
     # update(vendor)
     products = []
-    raw_products = Producto.objects.filter(vendor=vendor)
-    schedule = VendedorFijo.objects.get(usuario=user).schedule()
+    raw_products = Producto.objects.filter(vendedor=vendor)
+    schedule = VendedorFijo.objects.get(usuario=user).schedule() if user.tipo == 2 else None
     for p in raw_products:
         products.append(p)
     return render(request, 'app/vendedor-main.html', {'user': user, 'vendor': vendor,
@@ -1161,7 +1161,8 @@ def stats(request):
 
 
 def logout(request):
-    return None
+    auth.logout(request)
+    return HttpResponseRedirect(reverse('index'))
 
 
 def test(request):

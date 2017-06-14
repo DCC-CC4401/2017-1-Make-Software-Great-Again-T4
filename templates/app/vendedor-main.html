@@ -53,7 +53,7 @@
                                     <h4 class="card-title grey-text flow-text text-darken-4">Favorito</h4>
                                     <h6><i class="material-icons amber-text">grade</i>
                                         <span class=" grey-text flow-text text-darken-4"
-                                              style="font-size:24px; line-height:35px;">42</span>
+                                              style="font-size:24px; line-height:35px;">{{ vendor.numero_favoritos }}</span>
                                     </h6>
                                 </label>
                             </div>
@@ -84,7 +84,7 @@
                                 <!--<input type="checkbox"><span class="lever"></span>-->
                                 <h6><i class="material-icons amber-text">grade</i>
                                     <span class=" grey-text flow-text text-darken-4"
-                                          style="font-size:22px; line-height:25px;">42</span>
+                                          style="font-size:22px; line-height:25px;">{{ vendor.numero_favoritos }}</span>
                                 </h6>
                             </label>
                         </div>
@@ -100,7 +100,7 @@
                     </div>
 
                     <div class="col s4 offset-s8 right-align"> <!--offset-s4-->
-                        <a href="{% url 'edit_account' %}"
+                        <a href="#"
                            class="btn-floating activator waves-effect waves-light darken-2">
                             <i class="material-icons">mode_edit</i>
                         </a>
@@ -120,7 +120,7 @@
                                 <div class="teal lighten-2 card-image waves-effect waves-block waves-light">
                                     <img class="activator responsive-img center-block"
                                          style="max-width: 30%; margin-top:20px; margin-bottom:20px;"
-                                         src="{% static product.imagen %}">
+                                         src="{% static product.icono.url %}">
                                 </div>
                                 <div class="card-content">
                 <span class="card-title activator grey-text text-darken-4">{{ product.nombre }}

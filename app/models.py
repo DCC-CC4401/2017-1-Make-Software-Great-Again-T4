@@ -15,6 +15,7 @@ DIAS = [
     (7, 'Domingo')
 ]
 
+
 class FormasDePago(models.Model):
     metodo = models.CharField(max_length=50)
 
@@ -36,6 +37,7 @@ class FormasDePago(models.Model):
     - last_name
 '''
 
+
 # "Extiende" el usuario de Django para agregar tipo y avatar.
 class Usuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -49,6 +51,7 @@ class Usuario(models.Model):
     class Meta:
         db_table = 'usuario'
 
+
 class Alumno(models.Model):
     usuario = models.OneToOneField(Usuario)
 
@@ -57,9 +60,9 @@ class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
-    posicion_x = models.DecimalField()
-    posicion_y = models.DecimalField()
-    favoritos = models.PositiveIntegerField()
+    lat = models.DecimalField(max_digits=10, decimal_places=2)
+    lng = models.DecimalField(max_digits=10, decimal_places=2)
+    numero_favoritos = models.PositiveIntegerField()
 
     def payment_str(self):
         temp = []
@@ -81,7 +84,7 @@ class VendedorFijo(Vendedor):
 
 
 # Mismos atributos de Vendedor
-class VendedorAmbulante(models.Model):
+class VendedorAmbulante(Vendedor):
     pass
 
 
@@ -89,9 +92,16 @@ class Categoria(models.Model):
     nombre = models.CharField(max_length=50)
 
 
+# Icons are saved to avoid saving the same image many times.
+class ProductIcon(models.Model):
+    name = models.CharField(max_length=30)
+    icon = models.ImageField()
+
+
 class Producto(models.Model):
     vendedor = models.ForeignKey(Vendedor)
     nombre = models.CharField(max_length=200)
+    icono = models.ForeignKey(ProductIcon)
     categorias = models.ManyToManyField(Categoria)
     descripcion = models.TextField(blank=True, max_length=500)
     stock = models.PositiveSmallIntegerField(default=0)
