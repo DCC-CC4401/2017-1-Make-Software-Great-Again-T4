@@ -53,7 +53,7 @@
                     <div class="background" style="height:175px;">
                         <img src="{% static "img/background4.png" %}">
                     </div>
-                    {% if not user.is_authenticated %}
+                    {% if not user.user.is_authenticated %}
                         <a href="#"><img style="margin-top: 16%;" class="circle"
                                          src="{% static 'img/AvatarPenguin.png' %}"></a>
                     {% else %}
@@ -66,7 +66,7 @@
                 </div>
 
                 <li style="padding-top: 0.5em"></li>
-                {% if not user.is_authenticated %}
+                {% if not user.user.is_authenticated %}
                     <li><a href="{% url 'index' %}"><i class="material-icons">home</i>Inicio</a></li>
                     <li><a href="{% url 'login' %}"><i class="material-icons">account_circle</i>Iniciar
                         Sesión</a></li>
@@ -116,6 +116,32 @@
                             </div>
                         </li>
                     {% endif %}
+                {% endif %}
+                {% if user.tipo == 1 or not user.user.is_authenticated %}
+                    <li><a class="subheader">Filtros</a></li>
+                    {% if user.tipo == 1 %}
+                        <li>
+                            <div class="switch" style="margin-left: 10px;">
+                                <label>
+                                    <input type="checkbox"><span class="lever"></span>Sólo mostrar favoritos
+                                </label>
+                            </div>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <div class="switch" style="margin-left: 10px;">
+                            <label>
+                                <input type="checkbox"><span class="lever"></span>Snacks
+                            </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="switch" style="margin-left: 10px;">
+                            <label>
+                                <input type="checkbox"><span class="lever"></span>Almuerzos
+                            </label>
+                        </div>
+                    </li>
                 {% endif %}
             </ul>
         </div>

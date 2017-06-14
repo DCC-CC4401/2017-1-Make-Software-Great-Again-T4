@@ -70,6 +70,12 @@ class Vendedor(models.Model):
             temp.append(i['metodo'])
         return ' '.join(temp)
 
+    def estado(self):
+        return 'Activo' if self.activo else 'Incativo'
+
+    def tipo(self):
+        return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
+
 
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
@@ -96,6 +102,9 @@ class Categoria(models.Model):
 class ProductIcon(models.Model):
     name = models.CharField(max_length=30)
     icon = models.ImageField()
+
+    def url(self):
+        return self.icon.url[13:]
 
 
 class Producto(models.Model):
