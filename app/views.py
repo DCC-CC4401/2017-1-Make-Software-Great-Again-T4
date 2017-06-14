@@ -1,38 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import datetime
-
 from django.contrib import auth
 from django.contrib.auth import authenticate
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-
-# from django.views.generic import TemplateView
-# from django.utils import timezone
-# from .forms import LoginForm
-# from .forms import GestionProductosForm
-# from .forms import editarProductosForm
-# from .models import Usuario
-# from .models import Favoritos
-# from .models import Transacciones
-# from django.db.models import Count
-# from django.db.models import Sum
-# from django.shortcuts import render_to_response
-# from django.http import HttpResponse
-# import simplejson
-# from django.views.decorators.csrf import ensure_csrf_cookie
-# from django.http import JsonResponse
-# from django.core import serializers
-# from django.views.decorators.csrf import csrf_exempt
-# # from multiselectfield import MultiSelectField
-# from django.core.files.storage import default_storage
-
-
-# Create your views here.
-# Inicio refactoriong
 from django.urls import reverse
+from django.views import View
 
-from app.forms import LoginForm, EditarCuenta
+from app.forms import LoginForm, EditarCuenta, EditarProductoForm
 from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago
 
 
@@ -1173,17 +1148,15 @@ def signup(request):
     return None
 
 
-def edit_account(request):
-    if not request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('index'))
+class EditAccount(View):
     choices = []
     for i in FormasDePago.objects.all().values():
         choices.append((i['metodo'], i['metodo']))
-    user = Usuario.objects.get(user=request.user)
-    form = EditarCuenta(request.POST, request.FILES)
-    form.fields['formas_pago'].choices = choices
 
-    if request.method == 'GET':
+    def get(self, request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('index'))
+        user = Usuario.objects.get(user=request.user)
         initial = {'first_name': request.user.first_name, 'last_name': request.user.last_name}
         data = {'user': user}
         if user.tipo == 2:
@@ -1191,17 +1164,90 @@ def edit_account(request):
             initial['hora_ini'] = ven.hora_ini
             initial['hora_fin'] = ven.hora_fin
 
-        if user.tipo >= 1:
-            payment = {}
+        if user.tipo >= 2:
             vendor = Vendedor.objects.get(usuario=user)
             data['vendor'] = vendor
             pay = vendor.formas_pago.values()
-            for i in pay:
-                payment[i['metodo']] = i['metodo']
+            payment = [i['metodo'] for i in pay]
             initial['formas_pago'] = payment
 
         form = EditarCuenta(initial=initial)
-        form.fields['formas_pago'].choices = choices
+        form.fields['formas_pago'].choices = self.choices
         data['form'] = form
-        print(initial)
         return render(request, 'app/edit_account.html', data)
+
+    def post(self, request):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('index'))
+        form = EditarCuenta(request.POST, request.FILES)
+        form.fields['formas_pago'].choices = self.choices
+        user = Usuario.objects.get(user=request.user)
+        print(form.errors)
+        if not form.is_valid():
+            return HttpResponseRedirect(reverse('edit_account'))
+
+        user.user.first_name = form.cleaned_data['first_name']
+        user.user.last_name = form.cleaned_data['last_name']
+        if form.cleaned_data['avatar'] is not None:
+            user.avatar = form.cleaned_data['avatar']
+            user.save()
+        if user.tipo == 1:
+            user.save()
+            return HttpResponseRedirect(reverse('home'))
+        vendor = Vendedor.objects.get(usuario=user)
+        if user.tipo == 2:
+            svendor = VendedorFijo.objects.get(usuario=user)
+            svendor.hora_ini = form.cleaned_data['hora_ini']
+            svendor.hora_fin = form.cleaned_data['hora_fin']
+            svendor.save()
+        pay = form.cleaned_data['formas_pago']
+        vendor.formas_pago.clear()
+        for i in pay:
+            vendor.formas_pago.add(FormasDePago.objects.get(metodo=i))
+        vendor.save()
+        user.save()
+        return HttpResponseRedirect('home')
+
+
+class EditProduct(View):
+    def get(self, request, pid):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('index'))
+        user = Usuario.objects.get(user=request.user)
+        if user.tipo == 1:
+            return HttpResponseRedirect(reverse('home'))
+        vendor = Vendedor.objects.get(usuario=user)
+        products = Producto.objects.filter(vendedor=vendor)
+        try:
+            product = products.get(id=pid)
+            initial = {'nombre': product.nombre, 'precio': product.precio,
+                       'stock': product.stock, 'descripcion': product.descripcion}
+            form = EditarProductoForm(initial=initial)
+            return render(request, 'app/edit_product.html', {'form': form, 'user': user,
+                                                             'vendor': vendor, 'photo': product.imagen})
+        except:
+            return HttpResponseRedirect(reverse('home'))
+
+    def post(self, request, pid):
+        if not request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('index'))
+        user = Usuario.objects.get(user=request.user)
+        if user.tipo == 1:
+            return HttpResponseRedirect(reverse('home'))
+
+        vendor = Vendedor.objects.get(usuario=user)
+        products = Producto.objects.filter(vendedor=vendor)
+        try:
+            product = products.get(id=pid)
+            form = EditarProductoForm(request.POST, request.FILES)
+            if not form.is_valid():
+                self.get(request, pid)
+            product.nombre = form.cleaned_data['nombre']
+            product.precio = form.cleaned_data['precio']
+            product.stock = form.cleaned_data['stock']
+            product.descripcion = form.cleaned_data['descripcion']
+            if form.cleaned_data['imagen'] is not None:
+                product.imagen = form.cleaned_data['imagen']
+            product.save()
+        finally:
+            return HttpResponseRedirect(reverse('home'))

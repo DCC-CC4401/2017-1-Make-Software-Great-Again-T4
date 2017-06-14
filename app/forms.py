@@ -46,8 +46,8 @@ class EditarCuenta(forms.Form):
     elecciones = []
     formas_pago = forms.MultipleChoiceField(required=False, choices=elecciones,
                                             widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
-    dias_ini = forms.ChoiceField(choices=DIAS, required=False)
-    dias_fin = forms.ChoiceField(choices=DIAS, required=False)
+    # dias_ini = forms.ChoiceField(choices=DIAS, required=False)
+    # dias_fin = forms.ChoiceField(choices=DIAS, required=False)
     hora_ini = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     hora_fin = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
 
