@@ -1,12 +1,11 @@
 from django import forms
 
-from .models import Usuario, Comida
 from django import forms
 
 
 class LoginForm(forms.Form):
-    email = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput())
+    username = forms.CharField(max_length=100, required=True)
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
 
 
 class GestionProductosForm(forms.Form):

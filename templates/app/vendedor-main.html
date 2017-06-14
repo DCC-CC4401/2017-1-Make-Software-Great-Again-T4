@@ -1,0 +1,177 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block content %}
+
+    <script>
+        $(document).ready(function () {
+            $('.modal').modal();
+        });
+
+    </script>
+
+    <div class="row">
+        <div class="col s12 m8">
+            <div id="profile-page-header" class="card">
+                <div class="card-image waves-effect waves-block waves-light">
+                    <img class="activator" src="{% static 'img/food-background3.png' %}" alt="user background">
+                </div>
+                <div class="row hide-on-small-and-down">
+                    <a class="card-profile-image-large">
+                        <img style="margin-top: 20%;" src="/media/{{ user.avatar }}" alt="profile image"
+                             class="circle z-depth-2 responsive-img activator">
+                    </a>
+                </div>
+                <div class="row show-on-small hide-on-med-and-up">
+                    <a class="card-profile-image-small">
+                        <img src="/media/{{ user.avatar }}" alt="profile image"
+                             class="circle z-depth-2 responsive-img activator">
+                    </a>
+                </div>
+                <div class="card-content s12">
+                    <div class="row">
+                        <div class="col s3 offset-s2 hide-on-med-and-down">
+                            <h4 class="card-title grey-text flow-text text-darken-4 center-align">{{ user.user.first_name }} &ensp;{{ user.user.last_name }}</h4>
+                            <p class="medium-small flow-text grey-text center-align">{{ user.tipo }}</p>
+                            {% if user.tipo == 2 %}
+                                <p class="flow-text text-darken-4 center-align" style="font-size: 0.88rem;">
+                                    Horario: <a class="light-green-text center-align">{{ schedule }}</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="col s3 l2 hide-on-med-and-down">
+                            <h4 class="card-title flow-text text-darken-4">Estado</h4>
+                            <p class="medium-small flow-text light-green-text">{{ vendor.activo }}</p>
+                        </div>
+                        <div class="col s3 l2 hide-on-med-and-down center-align">
+                            <h8 class=" grey-text flow-text text-darken-4" style="font-size: 1.3rem;">Formas de pago
+                            </h8>
+                            <p class="medium-small flow-text grey-text">{{ vendor.payment_str }}</p>
+                        </div>
+                        <div class="col s3 l2 hide-on-med-and-down center-align">
+                            <div class="switch" style="margin-left: 10px;">
+                                <label>
+                                    <h4 class="card-title grey-text flow-text text-darken-4">Favorito</h4>
+                                    <h6><i class="material-icons amber-text">grade</i>
+                                        <span class=" grey-text flow-text text-darken-4"
+                                              style="font-size:24px; line-height:35px;">42</span>
+                                    </h6>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col s3 l2 hide-on-med-and-down right-align">
+                        <a href="#"
+                           class="btn-floating activator waves-effect waves-light darken-2">
+                            <i class="material-icons">mode_edit</i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row show-on-medium-and-down hide-on-med-and-up">
+                    <div class="col s4 offset-s2">
+                        <h4 class="card-title grey-text flow-text text-darken-4">{{ user.user.first_name }} &ensp;{{ user.user.last_name }}</h4>
+                        <p class="medium-small flow-text grey-text">{{ user.tipo }}</p>
+                        {% if user.tipo == 2 %}
+                            <p class="flow-text text-darken-4" style="font-size: 0.88rem;">
+                                Horario: <a class="light-green-text">{{ schedule }}</a>
+                            </p>
+                        {% endif %}
+                        <div class="switch" style="margin-left: 10px;">
+                            <label>
+                                <p class="card-title grey-text flow-text text-darken-4" style="font-size: 1.3rem;">
+                                    Favorito</p>
+                                <!--<input type="checkbox"><span class="lever"></span>-->
+                                <h6><i class="material-icons amber-text">grade</i>
+                                    <span class=" grey-text flow-text text-darken-4"
+                                          style="font-size:22px; line-height:25px;">42</span>
+                                </h6>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col s3 m2 l12 offset-s1">
+                        <p class="flow-text text-darken-4">Estado</p>
+                        <p class="medium-small flow-text light-green-text">{{ vendor.activo }}</p>
+                    </div>
+
+                    <div class="col s3 m2 l12 offset-s1"> <!--offset-s2-->
+                        <p class=" grey-text flow-text text-darken-4" style="font-size: 1.3rem;">Formas de pago</p>
+                        <p class="medium-small flow-text grey-text">{{ vendor.payment_str }}</p>
+                    </div>
+
+                    <div class="col s4 offset-s8 right-align"> <!--offset-s4-->
+                        <a href="{% url 'edit_account' %}"
+                           class="btn-floating activator waves-effect waves-light darken-2">
+                            <i class="material-icons">mode_edit</i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div id="profile-page-content" class="row">
+        <div id="profile-page-wall" class="col s12 m8">
+            <div class="z-depth-1 section">
+                <div class="row" style="flex-wrap: wrap">
+                    {% for product in products %}
+                        <div class="col m6 l4">
+                            <div class="card">
+                                <div class="teal lighten-2 card-image waves-effect waves-block waves-light">
+                                    <img class="activator responsive-img center-block"
+                                         style="max-width: 30%; margin-top:20px; margin-bottom:20px;"
+                                         src="{% static product.imagen %}">
+                                </div>
+                                <div class="card-content">
+                <span class="card-title activator grey-text text-darken-4">{{ product.nombre }}
+                    <i class="material-icons right">more_vert</i></span>
+                                    <p><a class="teal-text">{{ product.precio }}</a></p>
+
+                                    <div id="modal{{ product.id }}" class="modal">
+                                        <div class="modal-content">
+                                            <img class="activator responsive-img center-block"
+                                                 src="/media/{{ product.imagen }}">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <a href="#"
+                                               class="modal-action modal-close waves-effect waves-green btn-flat"><i
+                                                    class="large material-icons">close</i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-reveal">
+                <span class="card-title grey-text text-darken-4">{{ product.nombre }}
+                    <i class="material-icons right">close</i></span>
+                                    <ul>
+                                        <li>Precio: <a class="green-text light-green-text">${{ product.precio }}</a></li>
+                                        <li>Categoria: {{ product.category2str }}</li>
+                                        <li>Stock: {{ product.stock }}</li>
+                                        <li>Descripción: {{ product.descripcion }}
+                                            <div class="row">
+                                                <p class="left-align col m6"><a class="waves-effect waves-light"
+                                                                                href="#">Editar</a>
+                                                <p class="right-align col m6"><a class="waves-effect waves-light"
+                                                                                 href="#modal{{ product.id }}">Ver imagen</a>
+                                                </p>
+
+                                                </p>
+                                            </div>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <div class='row'>
+        <a class='col l5 offset-l4 btn btn-large waves-effect button teal'
+           href="#">Agregar Item</a>
+    </div>
+
+{% endblock %}

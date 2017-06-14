@@ -1,5 +1,10 @@
 import datetime
+
+from django.contrib import auth
+from django.contrib.auth import authenticate
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
+
 # from django.views.generic import TemplateView
 # from django.utils import timezone
 # from .forms import LoginForm
@@ -23,6 +28,12 @@ from django.shortcuts import render
 
 # Create your views here.
 # Inicio refactoriong
+from django.urls import reverse
+
+from app.forms import LoginForm
+from app.models import Usuario, Vendedor, Producto, VendedorFijo
+
+
 def index(request):
     return render(request, 'app/index.html')
 
@@ -1102,11 +1113,41 @@ def index(request):
 #     transaccionNueva.save()
 #     return JsonResponse({"transaccion": "realizada"})
 def login(request):
-    return None
+    form = LoginForm(request.POST)
+    if form.is_valid() and request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                auth.login(request, user)
+                return HttpResponseRedirect('home.html')
+            else:
+                return render(request, 'app/login.html', {
+                    'login_message': 'Su cuenta ha sido banneada', 'form': form, })
+        else:
+            return render(request, 'app/login.html', {
+                'login_message': 'Nombre de Usuario o Contraseña erroneos', 'form': form, })
+    else:
+        form = LoginForm()
+    return render(request, 'app/login.html', {'form': form, })
 
 
 def home(request):
-    return None
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('login'))
+    user = Usuario.objects.get(user=request.user)
+    if user.tipo == 1:
+        return render(request, 'app/home.html', {'user': user})
+    vendor = Vendedor.objects.get(user=user)
+    # update(vendor)
+    products = []
+    raw_products = Producto.objects.filter(vendor=vendor)
+    schedule = VendedorFijo.objects.get(usuario=user).schedule()
+    for p in raw_products:
+        products.append(p)
+    return render(request, 'app/vendedor-main.html', {'user': user, 'vendor': vendor,
+                                                      'products': products, 'schedule': schedule})
 
 
 def stock(request):
@@ -1123,3 +1164,7 @@ def logout(request):
 
 def test(request):
     return render(request, 'app/test.html')
+
+
+def signup(request):
+    return None

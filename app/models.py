@@ -60,6 +60,12 @@ class Vendedor(models.Model):
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
 
+    def payment_str(self):
+        temp = []
+        for i in self.formas_pago.values():
+            temp.append(i['metodo'])
+        return ' '.join(temp)
+
 
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
@@ -68,6 +74,9 @@ class VendedorFijo(Vendedor):
     dia_fin = models.CharField(choices=DIAS, max_length=9)
     hora_ini = models.TimeField()
     hora_fin = models.TimeField()
+
+    def schedule(self):
+        return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
 
 
 # Mismos atributos de Vendedor
@@ -94,7 +103,7 @@ class Producto(models.Model):
     def category2str(self):
         temp = []
         for i in self.categorias.values():
-            temp.append(i['name'])
+            temp.append(i['nombre'])
         return ' '.join(temp)
 
     class Meta:
