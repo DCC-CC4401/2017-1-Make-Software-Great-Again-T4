@@ -57,6 +57,9 @@ class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
+    posicion_x = models.DecimalField()
+    posicion_y = models.DecimalField()
+    favoritos = models.PositiveIntegerField()
 
     def payment_str(self):
         temp = []
