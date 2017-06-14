@@ -1,17 +1,7 @@
-{% extends 'app/baseVFijo.html' %}
+{% extends 'unrefactoring/baseVAmbulante.html' %}
 {% block content %}
 
-<script>
- $(document).ready(function(){
-    $('.modal').modal();
-  });
-
-</script>
-
-
-
-
- <div class="section"></div>
+    <div class="section"></div>
     <main>
       <div class="section"></div>
 
@@ -87,32 +77,11 @@
                                <input id="avatar" type="file" name="avatar">
                            </div>
                        </div>
-
-                        <div class="row"></div>
-                        <div class="row"></div>
-
-                    </div>
-
-                     <!-- Horas de atención -->
-                    <div class="row">
-                        <div class="label" style="margin-left: 1%;">Horas de Atención</div>
-                       <div class="input-field col s6 m6">
-                           <div class="label" style="margin-left: 1%;">Hora de Inicio</div>
-                           <i class="material-icons prefix">query_builder</i>
-                          <input  value="" id="horaIni" name="horaIni" type="time" class="active validate" >
-{#                          <label for="horaIni">Hora de Inicio</label>#}
-                       </div>
-                       <div class="input-field col s6 m6">
-                           <div class="label" style="margin-left: 1%;">Hora de Término</div>
-                           <i class="material-icons prefix">query_builder</i>
-                          <input placeholder="Hora de Término" value="" id="horaFin" name="horaFin" type="time" class="active validate" >
-{#                          <label for="horaFin">Hora de Término</label>#}
-                       </div>
                     </div>
 
                     <div class="section"></div>
                      <div class='row'>{% csrf_token %}
-                         <button type='submit' name='btn_guardar' class='col l6 offset-l3 btn btn-large waves-effect teal' onclick="goBack()">Guardar</button>
+                         <button type='submit' name='btn_guardar' class='col l6 offset-l3 btn btn-large waves-effect teal'>Guardar</button>
                      </div>
                  </form>
               </div>
@@ -123,7 +92,7 @@
     <div class="section"></div>
     <div class="section"></div>
   </main>
-
+    
 <script>
     function ProfileName() {
         var nombre = "{{ nombre }}"
@@ -161,19 +130,8 @@
 </script>
 
 <script>
-    function ProfileHorarios() {
-        var horarioIni = "{{ horarioIni }}";
-        var horarioFin = "{{ horarioFin }}";
-        document.getElementById("horaIni").value = horarioIni;
-        document.getElementById("horaFin").value = horarioFin;
-    }
-</script>
-
-
-<script>
-    window.onload = ProfileName();
-    window.onload = ProfilePagos();
     window.onload = ProfileImg();
-    window.onload = ProfileHorarios();
+    window.onload = ProfilePagos();
+    window.onload = ProfileName();
 </script>
 {% endblock %}

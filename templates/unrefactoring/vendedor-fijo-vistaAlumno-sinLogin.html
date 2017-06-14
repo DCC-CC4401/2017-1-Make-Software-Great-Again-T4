@@ -1,4 +1,4 @@
-{% extends 'app/baseAlumno-sinLogin.html' %}
+    {% extends 'unrefactoring/baseAlumno-sinLogin.html' %}
 {% block content %}
 
 <script>
@@ -8,7 +8,6 @@
 
 </script>
     <main>
-{#    Perfil del vendedor           #}
     <div class="container">
         <div id="profile-page-header" class="card">
 
@@ -29,7 +28,6 @@
                 <a class="card-profile-image-small">
                     <img id="img-perfil-movil" src="" alt="profile image" class="circle z-depth-2 responsive-img activator">
                 </a>
-
             </div>
 
             <!-- Info del vendedor desktop -->
@@ -37,16 +35,17 @@
                 <div class="row">
                     <div class="col s3 offset-s2 hide-on-med-and-down">
 
+
                         <!-- Nombre -->
                         <h4 class="card-title grey-text flow-text text-darken-4">{{nombre}}</h4>
 
                         <!-- Tipo -->
-                        <p class="medium-small flow-text grey-text">&emsp;&emsp;&ensp;Vendedor Ambulante</p>
+                        <p class="medium-small flow-text grey-text">&emsp;&emsp;&ensp;Vendedor Fijo</p>
 
                         <!-- Horario -->
-{#                        <p class="flow-text text-darken-4" style="font-size: 0.88rem;">#}
-{#                            &emsp;&emsp;Horario: <a class="light-green-text">12:30-14:15</a>#}
-{#                        </p>#}
+                        <p class="flow-text text-darken-4" style="font-size: 0.88rem;">
+                            &ensp;Horario: <a class="light-green-text">{{horarioIni}} - {{horarioFin}}</a>
+                        </p>
                     </div>
 
                     <!-- Estado -->
@@ -69,10 +68,10 @@
             </div>
 
             <!-- Info del vendedor movil -->
-
-            <div class = "row show-on-medium-and-down hide-on-med-and-up"></div>
+             <div class = "row show-on-medium-and-down hide-on-med-and-up"></div>
             <div class = "row show-on-medium-and-down hide-on-med-and-up"></div><div class = "row show-on-medium-and-down hide-on-med-and-up"></div>
             <div class = "row show-on-medium-and-down hide-on-med-and-up"></div>
+            <div class="row show-on-medium-and-down hide-on-med-and-up">
             <div class="row show-on-medium-and-down hide-on-med-and-up">
                 <div class="col s3 m2 offset-s2">
                         <h4 class="card-title grey-text flow-text text-darken-4">{{nombre}}</h4>
@@ -82,6 +81,7 @@
 {#                        </p>#}
                          <div class="col s3 l2 hide-on-med-and-down center-align">
                         <div class="switch" style="margin-left: 10px;">
+
                         </div>
                     </div>
                     </div>
@@ -167,6 +167,7 @@
             </div>
         </div>
     </div>    </main>
+
 
 <script>
     function ProfileImg() {

@@ -24,6 +24,7 @@ DIAS = [
     - last_name
 '''
 
+
 # "Extiende" el usuario de Django para agregar tipo y avatar.
 class Usuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -63,8 +64,8 @@ class Vendedor(models.Model):
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
 class VendedorFijo(Vendedor):
-    dias_ini = models.CharField(choices=DIAS,max_length=9)
-    dia_fin = models.CharField(choices=DIAS,max_length=9)
+    dias_ini = models.CharField(choices=DIAS, max_length=9)
+    dia_fin = models.CharField(choices=DIAS, max_length=9)
     hora_ini = models.TimeField()
     hora_fin = models.TimeField()
 
@@ -98,6 +99,7 @@ class Producto(models.Model):
 
     class Meta:
         db_table = 'producto'
+
 
 '''
 Inicializar con:
