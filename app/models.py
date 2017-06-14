@@ -15,6 +15,18 @@ DIAS = [
     (7, 'Domingo')
 ]
 
+class FormasDePago(models.Model):
+    metodo = models.CharField(max_length=50)
+
+    '''
+    Inicializar con
+        (0, 'Efectivo'),
+        (1, 'Tarjeta de Crédito'),
+        (2, 'Tarjeta de Débito'),
+        (3, 'Tarjeta Junaeb'),
+    '''
+
+
 '''
  Campos de User de Django:
     - username
@@ -23,7 +35,6 @@ DIAS = [
     - first_name
     - last_name
 '''
-
 
 # "Extiende" el usuario de Django para agregar tipo y avatar.
 class Usuario(models.Model):
@@ -37,19 +48,6 @@ class Usuario(models.Model):
 
     class Meta:
         db_table = 'usuario'
-
-
-class FormasDePago(models.Model):
-    metodo = models.CharField(max_length=50)
-
-    '''
-    Inicializar con
-        (0, 'Efectivo'),
-        (1, 'Tarjeta de Crédito'),
-        (2, 'Tarjeta de Débito'),
-        (3, 'Tarjeta Junaeb'),
-    '''
-
 
 class Alumno(models.Model):
     usuario = models.OneToOneField(Usuario)
@@ -70,7 +68,7 @@ class Vendedor(models.Model):
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
 class VendedorFijo(Vendedor):
-    dias_ini = models.CharField(choices=DIAS, max_length=9)
+    dia_ini = models.CharField(choices=DIAS, max_length=9)
     dia_fin = models.CharField(choices=DIAS, max_length=9)
     hora_ini = models.TimeField()
     hora_fin = models.TimeField()
@@ -92,7 +90,7 @@ class Producto(models.Model):
     vendedor = models.ForeignKey(Vendedor)
     nombre = models.CharField(max_length=200)
     categorias = models.ManyToManyField(Categoria)
-    descripcion = models.TextField(blank=True)
+    descripcion = models.TextField(blank=True, max_length=500)
     stock = models.PositiveSmallIntegerField(default=0)
     precio = models.PositiveSmallIntegerField(default=0)
     imagen = models.ImageField(upload_to="productos")
