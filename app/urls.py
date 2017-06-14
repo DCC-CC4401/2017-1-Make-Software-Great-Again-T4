@@ -14,6 +14,7 @@ urlpatterns = [
     # url(r'^vendedorprofilepage/$', views.vendedorprofilepage,name='vendedorprofilepage'),
     # url(r'^formView/', views.formView, name='formView'),
     url(r'^logout/', views.logout, name='logout'),
+    url(r'^edit_account$', views.edit_account, name='edit_account'),
     # url(r'^register/', views.register, name='register'),
     # url(r'^loggedin/', views.loggedin, name='loggedin'),
     # url(r'^productoReq/', views.productoReq, name='productoReq'),

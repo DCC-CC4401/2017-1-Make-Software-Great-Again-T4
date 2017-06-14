@@ -32,8 +32,8 @@ from django.shortcuts import render
 # Inicio refactoriong
 from django.urls import reverse
 
-from app.forms import LoginForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo
+from app.forms import LoginForm, EditarCuenta
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago
 
 
 def index(request):
@@ -1171,3 +1171,37 @@ def test(request):
 
 def signup(request):
     return None
+
+
+def edit_account(request):
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('index'))
+    choices = []
+    for i in FormasDePago.objects.all().values():
+        choices.append((i['metodo'], i['metodo']))
+    user = Usuario.objects.get(user=request.user)
+    form = EditarCuenta(request.POST, request.FILES)
+    form.fields['formas_pago'].choices = choices
+
+    if request.method == 'GET':
+        initial = {'first_name': request.user.first_name, 'last_name': request.user.last_name}
+        data = {'user': user}
+        if user.tipo == 2:
+            ven = VendedorFijo.objects.get(usuario=user)
+            initial['hora_ini'] = ven.hora_ini
+            initial['hora_fin'] = ven.hora_fin
+
+        if user.tipo >= 1:
+            payment = {}
+            vendor = Vendedor.objects.get(usuario=user)
+            data['vendor'] = vendor
+            pay = vendor.formas_pago.values()
+            for i in pay:
+                payment[i['metodo']] = i['metodo']
+            initial['formas_pago'] = payment
+
+        form = EditarCuenta(initial=initial)
+        form.fields['formas_pago'].choices = choices
+        data['form'] = form
+        print(initial)
+        return render(request, 'app/edit_account.html', data)

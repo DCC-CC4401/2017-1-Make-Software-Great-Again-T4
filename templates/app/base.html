@@ -48,8 +48,10 @@
         <div id="slide-out" class="side-nav fixed leftside-navigation ps-container ps-active-y">
             <ul style="margin-top: 0">
                 <div class="userView">
-                    <i class="material-icons right grey-text text-lighten-2"
-                       style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0 0 !important;">settings</i>
+                    {% if user.user.is_authenticated %}
+                    <a href="{% url 'edit_account' %}"><i class="material-icons right grey-text text-lighten-2"
+                       style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0 0 !important;">settings</i></a>
+                    {% endif %}
                     <div class="background" style="height:175px;">
                         <img src="{% static "img/background4.png" %}">
                     </div>

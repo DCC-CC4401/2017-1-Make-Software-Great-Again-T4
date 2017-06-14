@@ -38,7 +38,7 @@ class LoginForm(forms.Form):
         model = User
 
 
-class EditarVendedorForm(forms.Form):
+class EditarCuenta(forms.Form):
     first_name = forms.CharField(max_length=30, required=False)
     last_name = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(required=False)
@@ -53,7 +53,7 @@ class EditarVendedorForm(forms.Form):
 
 
 # Hereda los atributos del vendedor
-class SignUpForm(EditarVendedorForm):
+class SignUpForm(EditarCuenta):
     username = forms.CharField(max_length=150, required=True)
     password = forms.CharField(widget=forms.PasswordInput, required=True)
     repassword = forms.CharField(widget=forms.PasswordInput, required=False)
