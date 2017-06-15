@@ -11,7 +11,7 @@
                 type: "POST",
                 url: '/ajax/delete_product/',
                 data: {
-                    id: {{ id }}
+                    id: {{ product.id }}
                 },
                 dataType: 'json',
                 success: function () {
@@ -38,7 +38,7 @@
                     <div class="col m6">
                         <div class="card">
                             <div class="card-image">
-                                <img src="/media/{{ photo }}" style="width: 100%; height: auto">
+                                <img src="/media/{{ product.imagen }}" style="width: 100%; height: auto">
                             </div>
                         </div>
                     </div>

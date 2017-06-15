@@ -52,10 +52,6 @@ class Usuario(models.Model):
         db_table = 'usuario'
 
 
-class Alumno(models.Model):
-    usuario = models.OneToOneField(Usuario)
-
-
 class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
@@ -92,6 +88,11 @@ class VendedorFijo(Vendedor):
 # Mismos atributos de Vendedor
 class VendedorAmbulante(Vendedor):
     pass
+
+
+class Alumno(models.Model):
+    usuario = models.OneToOneField(Usuario)
+    favorites = models.ManyToManyField(Vendedor)
 
 
 class Categoria(models.Model):

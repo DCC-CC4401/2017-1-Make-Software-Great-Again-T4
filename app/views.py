@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-
+import datetime
+import time
 from django.contrib import auth
 from django.contrib.auth import authenticate
 from django.http import HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, EditarProductoForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno
 
 
 def index(request):
@@ -1117,7 +1119,7 @@ def home(request):
     if user.tipo == 1:
         return render(request, 'app/home.html', {'user': user})
     vendor = Vendedor.objects.get(usuario=user)
-    # update(vendor)
+    update(vendor)
     products = []
     raw_products = Producto.objects.filter(vendedor=vendor)
     schedule = VendedorFijo.objects.get(usuario=user).schedule() if user.tipo == 2 else None
@@ -1149,11 +1151,12 @@ def signup(request):
 
 
 class EditAccount(View):
-    choices = []
-    for i in FormasDePago.objects.all().values():
-        choices.append((i['metodo'], i['metodo']))
+    @staticmethod
+    def get(request):
+        choices = []
+        for i in FormasDePago.objects.all().values():
+            choices.append((i['metodo'], i['metodo']))
 
-    def get(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('index'))
         user = Usuario.objects.get(user=request.user)
@@ -1172,15 +1175,19 @@ class EditAccount(View):
             initial['formas_pago'] = payment
 
         form = EditarCuenta(initial=initial)
-        form.fields['formas_pago'].choices = self.choices
+        form.fields['formas_pago'].choices = choices
         data['form'] = form
         return render(request, 'app/edit_account.html', data)
 
-    def post(self, request):
+    @staticmethod
+    def post(request):
+        choices = []
+        for i in FormasDePago.objects.all().values():
+            choices.append((i['metodo'], i['metodo']))
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('index'))
         form = EditarCuenta(request.POST, request.FILES)
-        form.fields['formas_pago'].choices = self.choices
+        form.fields['formas_pago'].choices = choices
         user = Usuario.objects.get(user=request.user)
         print(form.errors)
         if not form.is_valid():
@@ -1210,7 +1217,8 @@ class EditAccount(View):
 
 
 class EditProduct(View):
-    def get(self, request, pid):
+    @staticmethod
+    def get(request, pid):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('index'))
         user = Usuario.objects.get(user=request.user)
@@ -1224,7 +1232,7 @@ class EditProduct(View):
                        'stock': product.stock, 'descripcion': product.descripcion}
             form = EditarProductoForm(initial=initial)
             return render(request, 'app/edit_product.html', {'form': form, 'user': user,
-                                                             'vendor': vendor, 'photo': product.imagen})
+                                                             'vendor': vendor, 'product': product})
         except:
             return HttpResponseRedirect(reverse('home'))
 
@@ -1251,3 +1259,92 @@ class EditProduct(View):
             product.save()
         finally:
             return HttpResponseRedirect(reverse('home'))
+
+
+def vendor_info(request, pid):
+    try:
+        user = None
+        is_fav = False
+
+        vendor = Vendedor.objects.get(id=pid)
+        update(vendor)
+        products = []
+        raw_products = Producto.objects.filter(vendedor=vendor)
+        schedule = VendedorFijo.objects.get(usuario=vendor.usuario).schedule() if vendor.usuario.tipo == 2 else None
+        for p in raw_products:
+            products.append(p)
+
+        if request.user.is_authenticated():
+            user = Usuario.objects.get(user=request.user)
+            if user.tipo == 1:
+                buyer = Alumno.objects.get(usuario=user)
+                if buyer.favorites.filter(usuario=vendor.usuario).values().count() != 0:
+                    is_fav = True
+
+        return render(request, 'app/vendor_info.html', {'user': user, 'vendor': vendor,
+                                                        'products': products, 'schedule': schedule, 'is_fav': is_fav})
+    except:
+        return HttpResponseRedirect(reverse('home'))
+
+
+def update(ven):
+    t = datetime.datetime.now().time()
+    if ven.usuario.tipo == 2:
+        vendor = VendedorFijo.objects.get(usuario=ven.usuario)
+        now = datetime.time(hour=t.hour, minute=t.minute)
+        if vendor.hora_ini <= now <= vendor.hora_fin and not vendor.activo:
+            vendor.activo = True
+        if not vendor.hora_ini <= now <= vendor.hora_fin and vendor.activo:
+            vendor.activo = False
+        vendor.save()
+
+
+def like(request):
+    # print "aqui"
+    data = {'is_fav_now': False}
+    pid = request.POST.get('id', None)
+    vendor = Vendedor.objects.get(id=pid)
+    if not request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('index'))
+    if Alumno.objects.filter(usuario=Usuario.objects.get(user=request.user)).values().count() != 0:
+        buyer = Alumno.objects.get(usuario=Usuario.objects.get(user=request.user))
+        if buyer.favorites.filter(usuario=vendor.usuario).values().count() != 0:
+            buyer.favorites.remove(vendor)
+            vendor.numero_favoritos -= 1
+            data['is_fav_now'] = False
+        else:
+            buyer.favorites.add(vendor)
+            vendor.numero_favoritos += 1
+            data['is_fav_now'] = True
+        buyer.save()
+        vendor.save()
+    data['favorites'] = vendor.numero_favoritos
+    return JsonResponse(data)
+
+
+def check_in(request):
+    # print("check in")
+
+    user = Usuario.objects.get(user=request.user)
+    vendor = Vendedor.objects.get(usuario=user)
+
+    vendor.activo = True if not vendor.activo else False
+    vendor.save()
+
+    return JsonResponse({
+        'is_active': vendor.activo
+    })
+
+
+def delete_product(request):
+    pid = request.POST.get('id')
+    Producto.objects.get(id=pid).delete()
+    time.sleep(100)
+    return JsonResponse({'success': True})
+
+
+def delete_account(request):
+    user = Usuario.objects.get(user=request.user).user
+    auth.logout(request)
+    user.delete()
+    return JsonResponse({'success': True})

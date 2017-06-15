@@ -158,10 +158,10 @@ def test():
         'type': 1,
     }
     add_buyer(data2)
-    # buyer = Alumno.objects.get(user=Usuario.objects.get(user=User.objects.get(username=data2['username'])))
-    # buyer.favorites.add(Vendedor.objects.get(usuario=
-    #                                         Usuario.objects.get(user=User.objects.get(username=data1['username']))))
-    # buyer.save()
+    buyer = Alumno.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username=data2['username'])))
+    buyer.favorites.add(Vendedor.objects.get(usuario=
+                                             Usuario.objects.get(user=User.objects.get(username=data1['username']))))
+    buyer.save()
 
     data3 = {
         'username': 'vendor2',
