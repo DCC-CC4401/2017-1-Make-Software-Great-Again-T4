@@ -17,25 +17,27 @@ def index(request):
     return render(request, 'app/index.html')
 
 
-def login(request):
-    form = LoginForm(request.POST)
-    if form.is_valid() and request.method == 'POST':
+class Login(View):
+    @staticmethod
+    def get(request):
+        form = LoginForm()
+        return render(request, 'app/login.html', {'form': form})
+
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if not form.is_valid():
+            self.get(request)
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                auth.login(request, user)
-                return HttpResponseRedirect(reverse('home'))
-            else:
-                return render(request, 'app/login.html', {
-                    'login_message': 'Su cuenta ha sido banneada', 'form': form, })
-        else:
+        if user is None:
             return render(request, 'app/login.html', {
                 'login_message': 'Nombre de Usuario o Contraseña erroneos', 'form': form, })
-    else:
-        form = LoginForm()
-    return render(request, 'app/login.html', {'form': form, })
+        if not user.is_active:
+            return render(request, 'app/login.html', {
+                'login_message': 'Su cuenta ha sido banneada', 'form': form, })
+        auth.login(request, user)
+        return HttpResponseRedirect(reverse('home'))
 
 
 def home(request):
@@ -77,12 +79,15 @@ def signup(request):
 
 
 class EditAccount(View):
-    @staticmethod
-    def get(request):
-        choices = []
-        for i in FormasDePago.objects.all().values():
-            choices.append((i['metodo'], i['metodo']))
+    choices = []
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.choices = []
+        for i in FormasDePago.objects.all().values():
+            self.choices.append((i['metodo'], i['metodo']))
+
+    def get(self, request):
         if not request.user.is_authenticated():
             return HttpResponseRedirect(reverse('index'))
         user = Usuario.objects.get(user=request.user)
@@ -101,57 +106,43 @@ class EditAccount(View):
             initial['formas_pago'] = payment
 
         form = EditarCuenta(initial=initial)
-        form.fields['formas_pago'].choices = choices
+        form.fields['formas_pago'].choices = self.choices
         data['form'] = form
         return render(request, 'app/edit_account.html', data)
 
-    @staticmethod
-    def post(request):
-        choices = []
-        for i in FormasDePago.objects.all().values():
-            choices.append((i['metodo'], i['metodo']))
-        if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse('index'))
+    def post(self, request):
         form = EditarCuenta(request.POST, request.FILES)
-        form.fields['formas_pago'].choices = choices
+        form.fields['formas_pago'].choices = self.choices
+        if not request.user.is_authenticated() or not form.is_valid():
+            return self.get(request)
         user = Usuario.objects.get(user=request.user)
-        if not form.is_valid():
-            return HttpResponseRedirect(reverse('edit_account'))
-
         user.user.first_name = form.cleaned_data['first_name']
         user.user.last_name = form.cleaned_data['last_name']
         if form.cleaned_data['avatar'] is not None:
             user.avatar = form.cleaned_data['avatar']
-            user.save()
-        if user.tipo == 1:
-            user.save()
-            return HttpResponseRedirect(reverse('home'))
-        vendor = Vendedor.objects.get(usuario=user)
-        if user.tipo == 2:
+        user.save()
+        try:
+            vendor = Vendedor.objects.get(usuario=user)
+            pay = form.cleaned_data['formas_pago']
+            vendor.formas_pago.clear()
+            for i in pay:
+                vendor.formas_pago.add(FormasDePago.objects.get(metodo=i))
+            vendor.save()
             svendor = VendedorFijo.objects.get(usuario=user)
             svendor.hora_ini = form.cleaned_data['hora_ini']
             svendor.hora_fin = form.cleaned_data['hora_fin']
             svendor.save()
-        pay = form.cleaned_data['formas_pago']
-        vendor.formas_pago.clear()
-        for i in pay:
-            vendor.formas_pago.add(FormasDePago.objects.get(metodo=i))
-        vendor.save()
-        user.save()
-        return HttpResponseRedirect('home')
+        finally:
+            return HttpResponseRedirect('home')
 
 
 class EditProduct(View):
     @staticmethod
     def get(request, pid):
-        if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse('index'))
-        user = Usuario.objects.get(user=request.user)
-        if user.tipo == 1:
-            return HttpResponseRedirect(reverse('home'))
-        vendor = Vendedor.objects.get(usuario=user)
-        products = Producto.objects.filter(vendedor=vendor)
         try:
+            user = Usuario.objects.get(user=request.user)
+            vendor = Vendedor.objects.get(usuario=user)
+            products = Producto.objects.filter(vendedor=vendor)
             product = products.get(id=pid)
             initial = {'nombre': product.nombre, 'precio': product.precio,
                        'stock': product.stock, 'descripcion': product.descripcion}
@@ -162,19 +153,14 @@ class EditProduct(View):
             return HttpResponseRedirect(reverse('home'))
 
     def post(self, request, pid):
-        if not request.user.is_authenticated():
-            return HttpResponseRedirect(reverse('index'))
-        user = Usuario.objects.get(user=request.user)
-        if user.tipo == 1:
-            return HttpResponseRedirect(reverse('home'))
-
-        vendor = Vendedor.objects.get(usuario=user)
-        products = Producto.objects.filter(vendedor=vendor)
         try:
+            user = Usuario.objects.get(user=request.user)
+            vendor = Vendedor.objects.get(usuario=user)
+            products = Producto.objects.filter(vendedor=vendor)
             product = products.get(id=pid)
             form = EditarProductoForm(request.POST, request.FILES)
             if not form.is_valid():
-                self.get(request, pid)
+                return self.get(request, pid)
             product.nombre = form.cleaned_data['nombre']
             product.precio = form.cleaned_data['precio']
             product.stock = form.cleaned_data['stock']
@@ -190,7 +176,6 @@ def vendor_info(request, pid):
     try:
         user = None
         is_fav = False
-
         vendor = Vendedor.objects.get(id=pid)
         update(vendor)
         products = []
@@ -198,16 +183,15 @@ def vendor_info(request, pid):
         schedule = VendedorFijo.objects.get(usuario=vendor.usuario).schedule() if vendor.usuario.tipo == 2 else None
         for p in raw_products:
             products.append(p)
-
-        if request.user.is_authenticated():
+        try:
             user = Usuario.objects.get(user=request.user)
-            if user.tipo == 1:
-                buyer = Alumno.objects.get(usuario=user)
-                if buyer.favorites.filter(usuario=vendor.usuario).values().count() != 0:
-                    is_fav = True
-
-        return render(request, 'app/vendor_info.html', {'user': user, 'vendor': vendor,
-                                                        'products': products, 'schedule': schedule, 'is_fav': is_fav})
+            buyer = Alumno.objects.get(usuario=user)
+            if buyer.favorites.filter(usuario=vendor.usuario).values().count() != 0:
+                is_fav = True
+        finally:
+            return render(request, 'app/vendor_info.html', {'user': user, 'vendor': vendor,
+                                                            'products': products, 'schedule': schedule,
+                                                            'is_fav': is_fav})
     except:
         return HttpResponseRedirect(reverse('home'))
 
