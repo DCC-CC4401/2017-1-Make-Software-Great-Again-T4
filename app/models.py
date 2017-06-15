@@ -1,29 +1,49 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+from django.contrib.auth.models import User
 from django.db import models
-from multiselectfield import MultiSelectField
-from django.utils import timezone
-from django.utils.formats import get_format
+
+DIAS = [
+    (1, 'Lunes'),
+    (2, 'Martes'),
+    (3, 'Miércoles'),
+    (4, 'Jueves'),
+    (5, 'Viernes'),
+    (6, 'Sábado'),
+    (7, 'Domingo')
+]
 
 
-# Create your models here
+class FormasDePago(models.Model):
+    metodo = models.CharField(max_length=50)
 
-class Usuario(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=200)
-    email = models.CharField(max_length=200)
-    tipos = ((0, 'admin'), (1, 'alumno'), (2, 'fijo'), (3, 'ambulante'))
-    tipo = models.IntegerField(choices=tipos)
-    avatar = models.ImageField(upload_to='avatars')
-    contraseña = models.CharField(max_length=200)
-    activo = models.BooleanField(default=False, blank=True)
-    litaFormasDePago = (
+    '''
+    Inicializar con
         (0, 'Efectivo'),
         (1, 'Tarjeta de Crédito'),
         (2, 'Tarjeta de Débito'),
         (3, 'Tarjeta Junaeb'),
-    )
-    formasDePago = MultiSelectField(choices=litaFormasDePago, null=True, blank=True)
-    horarioIni = models.CharField(max_length=200, blank=True, null=True)
-    horarioFin = models.CharField(max_length=200, blank=True, null=True)
+    '''
+
+
+'''
+ Campos de User de Django:
+    - username
+    - password
+    - email
+    - first_name
+    - last_name
+'''
+
+
+# "Extiende" el usuario de Django para agregar tipo y avatar.
+class Usuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    tipos = ((0, 'Admin'), (1, 'Alumno'), (2, 'Vendedor Fijo'), (3, 'Vendedor Ambulante'))
+    tipo = models.IntegerField(choices=tipos)
+    avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
         return self.nombre
@@ -32,10 +52,88 @@ class Usuario(models.Model):
         db_table = 'usuario'
 
 
-class Comida(models.Model):
-    idVendedor = models.IntegerField(default=0)
-    nombre = models.CharField(max_length=200, primary_key=True)
-    listaCategorias = (
+class Vendedor(models.Model):
+    usuario = models.OneToOneField(Usuario)
+    activo = models.BooleanField(default=False, blank=True)
+    formas_pago = models.ManyToManyField(FormasDePago)
+    lat = models.DecimalField(max_digits=10, decimal_places=2)
+    lng = models.DecimalField(max_digits=10, decimal_places=2)
+    numero_favoritos = models.PositiveIntegerField()
+
+    def payment_str(self):
+        temp = []
+        for i in self.formas_pago.values():
+            temp.append(i['metodo'])
+        return ' '.join(temp)
+
+    def estado(self):
+        return 'Activo' if self.activo else 'Incativo'
+
+    def tipo(self):
+        return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
+
+
+# Hereda de Vendedor, se añaden horarios.
+# Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
+class VendedorFijo(Vendedor):
+    dia_ini = models.CharField(choices=DIAS, max_length=9)
+    dia_fin = models.CharField(choices=DIAS, max_length=9)
+    hora_ini = models.TimeField()
+    hora_fin = models.TimeField()
+
+    def schedule(self):
+        return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
+
+
+# Mismos atributos de Vendedor
+class VendedorAmbulante(Vendedor):
+    pass
+
+
+class Alumno(models.Model):
+    usuario = models.OneToOneField(Usuario)
+    favorites = models.ManyToManyField(Vendedor)
+
+
+class Categoria(models.Model):
+    nombre = models.CharField(max_length=50)
+
+
+# Icons are saved to avoid saving the same image many times.
+class ProductIcon(models.Model):
+    name = models.CharField(max_length=30)
+    icon = models.ImageField()
+
+    def url(self):
+        return self.icon.url[13:]
+
+
+class Producto(models.Model):
+    vendedor = models.ForeignKey(Vendedor)
+    nombre = models.CharField(max_length=200)
+    icono = models.ForeignKey(ProductIcon)
+    categorias = models.ManyToManyField(Categoria)
+    descripcion = models.TextField(blank=True, max_length=500)
+    stock = models.PositiveSmallIntegerField(default=0)
+    precio = models.PositiveSmallIntegerField(default=0)
+    imagen = models.ImageField(upload_to="productos")
+
+    def __str__(self):
+        return self.nombre
+
+    def category2str(self):
+        temp = []
+        for i in self.categorias.values():
+            temp.append(i['nombre'])
+        return ' '.join(temp)
+
+    class Meta:
+        db_table = 'producto'
+
+
+'''
+Inicializar con:
+        (
         (0, 'Cerdo'),
         (1, 'Chino'),
         (2, 'Completos'),
@@ -54,53 +152,23 @@ class Comida(models.Model):
         (15, 'Vegano'),
         (16, 'Vegetariano'),
     )
-    categorias = MultiSelectField(choices=listaCategorias)
-    descripcion = models.CharField(max_length=500)
-    stock = models.PositiveSmallIntegerField(default=0)
-    precio = models.PositiveSmallIntegerField(default=0)
-    imagen = models.ImageField(upload_to="productos")
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        db_table = 'Comida'
+'''
 
 
 class Favoritos(models.Model):
-    id = models.AutoField(primary_key=True)
-    idAlumno = models.IntegerField()
-    idVendedor = models.IntegerField()
-
-    def __str__(self):
-        return self.idAlumno
+    alumno = models.ForeignKey(Alumno)
+    vendedor = models.ForeignKey(Vendedor)
+    fecha = models.DateField()
 
     class Meta:
-        db_table = 'Favoritos'
-
-
-class Imagen(models.Model):
-    id = models.AutoField(primary_key=True)
-    imagen = models.ImageField(upload_to='avatars')
-
-    def __str__(self):
-        return self.id
-
-    class Meta:
-        db_table = 'imagen'
+        db_table = 'favoritos'
 
 
 class Transacciones(models.Model):
-    my_formats = get_format('DATETIME_INPUT_FORMATS')
-    idTransaccion = models.AutoField(primary_key=True)
-    nombreComida = models.CharField(max_length=200, blank=True, null=True)
-    idVendedor = models.IntegerField()
-    precio = models.IntegerField()
-    fechaAhora = str(timezone.now()).split(' ', 1)[0]
-    fecha = models.CharField(max_length=200, default=fechaAhora)
-
-    def __str__(self):
-        return str(self.idTransaccion)
+    vendedor = models.ForeignKey(Vendedor)
+    producto = models.ForeignKey(Producto)
+    cantidad = models.IntegerField()
+    fecha = models.DateField()
 
     class Meta:
         db_table = 'transacciones'
