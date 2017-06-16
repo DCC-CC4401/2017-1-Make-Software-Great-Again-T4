@@ -46,7 +46,7 @@ class Usuario(models.Model):
     avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
-        return self.nombre
+        return self.user.first_name
 
     class Meta:
         db_table = 'usuario'
@@ -56,8 +56,8 @@ class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
-    lat = models.DecimalField(max_digits=10, decimal_places=2)
-    lng = models.DecimalField(max_digits=10, decimal_places=2)
+    lat = models.DecimalField(max_digits=10, decimal_places=6)
+    lng = models.DecimalField(max_digits=10, decimal_places=6)
     numero_favoritos = models.PositiveIntegerField()
 
     def payment_str(self):
@@ -67,7 +67,7 @@ class Vendedor(models.Model):
         return ' '.join(temp)
 
     def estado(self):
-        return 'Activo' if self.activo else 'Incativo'
+        return 'Activo' if self.activo else 'Inactivo'
 
     def tipo(self):
         return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'

@@ -12,6 +12,7 @@
                         center: beau850
                     });
                     infoWindow = new google.maps.InfoWindow;
+                    /*
                     let info = '<div id="content">' +
                         '<div id="siteNotice">' +
                         '</div>' +
@@ -28,35 +29,45 @@
                         '<p style="text-align: right;">Ver detalles»</p>' +
                         '</div>' +
                         '</div>';
+
                     let infoVendedor = new google.maps.InfoWindow({
                         content: info,
                         maxWidth: 400
                     });
-                    let marker = new google.maps.Marker({
-                        position: beau850,
-                        map: map
+                    */
+                    /*
+                    const vendors = [
+                        {position: beau850},
+                        {position: {lat: -33.457885, lng: -70.663808}},
+                        {position: {lat: -33.458085, lng: -70.663808}, fav: true},
+                        {position: {lat: -33.458158, lng: -70.663678}},
+                        {position: {lat: -33.457658, lng: -70.663778}}
+                    ];
+                    */
+
+                    const star = "{% static 'img/star.png' %}";
+
+                    $ajaxSetup();
+                    $.ajax({
+                        type: 'POST',
+                        url: '/ajax/active_vendors/',
+                        dataType: 'json',
+                        success: showVendors,
+                        error: () => {/* pass */}
                     });
-                    let marker2 = new google.maps.Marker({
-                        position: {lat: -33.457885, lng: -70.663808},
-                        map: map
-                    });
-                    let marker3 = new google.maps.Marker({
-                        position: {lat: -33.458085, lng: -70.663808},
-                        map: map,
-                        icon: '../static/img/star.png'
-                    });
-                    let marker4 = new google.maps.Marker({
-                        position: {lat: -33.458158, lng: -70.663678},
-                        map: map
-                    });
-                    let marker5 = new google.maps.Marker({
-                        position: {lat: -33.457658, lng: -70.663778},
-                        map: map
-                    });
+
+                    function showVendors(vendors) {
+                        vendors.forEach(vendor => new google.maps.Marker({
+                            position: vendor.position,
+                            map: map,
+                            icon: vendor.fav ? star : undefined
+                        }));
+                    }
+                    /*
                     marker3.addListener('click', function () {
                         infoVendedor.open(map, marker3);
                     });
-
+                    */
                     let gps = {
                         path: google.maps.SymbolPath.CIRCLE,
                         fillColor: '#4285f4',
@@ -70,13 +81,14 @@
                         map: map,
                         icon: gps
                     });
+
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function (position) {
-                            var pos = {
+                            const pos = {
                                 lat: position.coords.latitude,
                                 lng: position.coords.longitude
                             };
-                            var circle = new google.maps.Circle({
+                            new google.maps.Circle({
                                 center: pos,
                                 radius: position.coords.accuracy,
                                 map: map,
@@ -88,8 +100,6 @@
                             // map.fitBounds(circle.getBounds());
                             map.setCenter(pos);
                             positionMarker.setPosition(pos);
-                            if (getDistance(pos, uluru) <= 100) {
-                            }
                         }, function () {
                             handleLocationError(true, infoWindow, map.getCenter());
                         });

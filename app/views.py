@@ -3,6 +3,8 @@ import datetime
 import time
 from django.contrib import auth
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers import serialize
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -270,3 +272,28 @@ def delete_account(request):
     auth.logout(request)
     user.delete()
     return JsonResponse({'success': True})
+
+
+ADMIN = 0
+ALUMNO = 1
+VENDEDOR_FIJO = 2
+VENDEDOR_AMBULANTE = 3
+
+
+class ActiveVendors(View):
+    @staticmethod
+    def post(request):
+        def get_favorites():
+            try:
+                user = Usuario.objects.get(user=request.user)
+                return Alumno.objects.get(usuario=user).favorites.all()
+            except:
+                return []
+
+        active = list(Vendedor.objects.filter(activo=True))
+        favorites = list(get_favorites())
+        vendors = set(active + favorites)
+        return JsonResponse([{
+            'position': {'lat': float(vendor.lat), 'lng': float(vendor.lng)},
+            'fav': vendor in favorites
+        } for vendor in vendors], safe=False)

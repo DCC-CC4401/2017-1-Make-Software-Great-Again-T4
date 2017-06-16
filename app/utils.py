@@ -142,8 +142,8 @@ def test():
         'stack': True,
         'state': True,
         'fav': 42,
-        'lan': 0.0,
-        'lng': 0.0,
+        'lan': -33.457885,
+        'lng': -70.663808,
         'schedule': ['12:00', '13:00']
     }
     add_S_Vendedor(data1)
@@ -175,8 +175,8 @@ def test():
         'stack': True,
         'state': False,
         'fav': 42,
-        'lan': 0.0,
-        'lng': 0.0,
+        'lan': -33.458085,
+        'lng': -70.663808,
     }
     add_A_Vendedor(data3)
 
