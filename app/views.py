@@ -284,9 +284,13 @@ class ActiveVendors(View):
             except:
                 return []
 
-        active = list(Vendedor.objects.filter(activo=True))
+        def has_stock(vendor):
+            return Producto.objects.filter(vendedor=vendor, stock__gt=0).exists()
+
+        active = Vendedor.objects.filter(activo=True)
         favorites = set(get_favorites())
+
         return JsonResponse([{
             'position': {'lat': float(vendor.lat), 'lng': float(vendor.lng)},
             'fav': vendor in favorites
-        } for vendor in active], safe=False)
+        } for vendor in active if has_stock(vendor)], safe=False)
