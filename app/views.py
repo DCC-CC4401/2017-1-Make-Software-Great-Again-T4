@@ -274,12 +274,6 @@ def delete_account(request):
     return JsonResponse({'success': True})
 
 
-ADMIN = 0
-ALUMNO = 1
-VENDEDOR_FIJO = 2
-VENDEDOR_AMBULANTE = 3
-
-
 class ActiveVendors(View):
     @staticmethod
     def post(request):
@@ -291,9 +285,8 @@ class ActiveVendors(View):
                 return []
 
         active = list(Vendedor.objects.filter(activo=True))
-        favorites = list(get_favorites())
-        vendors = set(active + favorites)
+        favorites = set(get_favorites())
         return JsonResponse([{
             'position': {'lat': float(vendor.lat), 'lng': float(vendor.lng)},
             'fav': vendor in favorites
-        } for vendor in vendors], safe=False)
+        } for vendor in active], safe=False)
