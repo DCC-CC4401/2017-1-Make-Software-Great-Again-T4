@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, EditarProductoForm, SignUpForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones
 from app.utils import agregar_usuario, agregar_vendedor_ambulante, agregar_vendedor_fijo
 
 
@@ -75,7 +75,15 @@ def home(request):
 
 
 def stock(request):
-    return None
+    try:
+        user = Usuario.objects.get(user=request.user)
+        vendor = Vendedor.objects.get(usuario=user)
+        update(vendor)
+        products = [i for i in Producto.objects.filter(vendedor=vendor)]
+        return render(request, 'app/stock.html', {'user': user, 'vendor': vendor,
+                                                  'products': products})
+    except:
+        return HttpResponseRedirect(reverse('home'))
 
 
 def stats(request):
@@ -136,10 +144,10 @@ class EditAccount(View):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.choices.append(actualizar_atributo(FormasDePago, 'metodo'))
-        #       self.choices = []
-        #      for i in FormasDePago.objects.all().values():
-        #         self.choices.append((i['metodo'], i['metodo']))
+        # self.choices.append(actualizar_atributo(FormasDePago, 'metodo'))
+        self.choices = []
+        for i in FormasDePago.objects.all().values():
+            self.choices.append((i['metodo'], i['metodo']))
 
     def get(self, request):
         if not request.user.is_authenticated():
@@ -308,3 +316,25 @@ def delete_account(request):
     auth.logout(request)
     user.delete()
     return JsonResponse({'success': True})
+
+
+def adm_stock(request):
+    user = Usuario.objects.get(user=request.user)
+    pid = request.POST.get('id')
+    vendor = Vendedor.objects.get(usuario=user)
+    product = Producto.objects.get(id=pid)
+    action = request.POST.get('action')
+    # print type(action)
+    if action == 'true':  # suma
+        product.stock += 1
+        p = Transacciones.objects.create(vendedor=vendor, fecha=datetime.datetime.now().date(), cantidad=-product.precio,
+                                         producto=product)
+        p.save()
+    elif product.stock > 0:
+        product.stock -= 1
+        p = Transacciones.objects.create(vendedor=vendor, fecha=datetime.datetime.now().date(), cantidad=product.precio,
+                                         producto=product)
+        p.save()
+
+    product.save()
+    return JsonResponse({'new_stock': product.stock})
