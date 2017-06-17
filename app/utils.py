@@ -5,49 +5,41 @@ import datetime
 from app.models import *
 
 
-def add_user(data):
+def agregar_usuario_interno(data):
     user = User.objects.create_user(username=data['username'], email=data['email'], password=data['password'])
-    user.first_name = data['name']
+    user.first_name = data['first_name']
     user.last_name = data['last_name']
     user.save()
 
 
-def add_app_user(data):
-    add_user(data)
+def agregar_usuario(data):
+    agregar_usuario_interno(data)
     user = User.objects.get(username=data['username'])
-    p = Usuario(user=user, avatar=data['photo'], tipo=data['type'])
+    p = Usuario(user=user, avatar=data['avatar'], tipo=data['tipo'])
     p.save()
-    print("App user saved")
+    print("Usuario guardado")
 
 
-def add_S_Vendedor(data):
-    add_app_user(data)
+def agregar_vendedor_fijo(data):
+    agregar_usuario(data)
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
 
-    t_start = datetime.datetime.strptime(data['schedule'][0], '%H:%M').time()
-    t_finish = datetime.datetime.strptime(data['schedule'][1], '%H:%M').time()
-
-    p = VendedorFijo(usuario=user, activo=data['state'],
-                     numero_favoritos=data['fav'], lat=data['lan'], lng=data['lng'],
-                     hora_ini=t_start, hora_fin=t_finish)
-    p.save()
-    print(data['payment'])
-    for i in data['payment']:
+    p = VendedorFijo(usuario=user,hora_ini=data['hora_ini'],hora_fin=data['hora_fin'])
+    for i in data['formas_pago']:
         p.formas_pago.add(FormasDePago.objects.get(metodo=i))
     p.save()
-    print("S.Vendedor saved")
+    print("Vendedor fijo guardado")
 
 
-def add_A_Vendedor(data):
-    add_app_user(data)
+def agregar_vendedor_ambulante(data):
+    agregar_usuario(data)
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
-    p = VendedorAmbulante(usuario=user, activo=data['state'],
-                          numero_favoritos=data['fav'], lat=data['lan'], lng=data['lng'])
-    p.save()
-    for i in data['payment']:
+
+    p = VendedorAmbulante(usuario=user)
+    for i in data['formas_pago']:
         p.formas_pago.add(FormasDePago.objects.get(metodo=i))
     p.save()
-    print("A.Vendedor saved")
+    print("Vendedor ambulante guardado")
 
 
 def add_product(data):
@@ -59,7 +51,7 @@ def add_product(data):
     for i in data['category']:
         p.categorias.add(Categoria.objects.get(nombre=i))
     p.save()
-    print("Product saved")
+    print("Producto guardado")
 
 
 def add_category(cat):
@@ -78,7 +70,7 @@ def add_payment(pay):
 
 
 def add_buyer(data):
-    add_app_user(data)
+    agregar_usuario(data)
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
     p = Alumno.objects.create(usuario=user)
     p.save()
@@ -146,7 +138,7 @@ def test():
         'lng': 0.0,
         'schedule': ['12:00', '13:00']
     }
-    add_S_Vendedor(data1)
+    agregar_vendedor_fijo(data1)
 
     data2 = {
         'username': 'buyer',
@@ -178,7 +170,7 @@ def test():
         'lan': 0.0,
         'lng': 0.0,
     }
-    add_A_Vendedor(data3)
+    agregar_vendedor_ambulante(data3)
 
     product_1 = {
         'username': 'vendor1',
