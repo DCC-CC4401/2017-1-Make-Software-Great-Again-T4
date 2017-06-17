@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
@@ -46,7 +45,7 @@ class Usuario(models.Model):
     avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
-        return self.nombre
+        return self.username
 
     class Meta:
         db_table = 'usuario'
@@ -56,9 +55,9 @@ class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
-    lat = models.DecimalField(max_digits=10, decimal_places=2)
-    lng = models.DecimalField(max_digits=10, decimal_places=2)
-    numero_favoritos = models.PositiveIntegerField()
+    lat = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    lng = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    numero_favoritos = models.PositiveIntegerField(default=0, editable=False)
 
     def payment_str(self):
         temp = []
@@ -67,19 +66,16 @@ class Vendedor(models.Model):
         return ' '.join(temp)
 
     def estado(self):
-        return 'Activo' if self.activo else 'Incativo'
+        return 'Activo' if self.activo else 'Inactivo'
 
     def tipo(self):
         return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
 
 
 # Hereda de Vendedor, se añaden horarios.
-# Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
 class VendedorFijo(Vendedor):
-    dia_ini = models.CharField(choices=DIAS, max_length=9)
-    dia_fin = models.CharField(choices=DIAS, max_length=9)
-    hora_ini = models.TimeField()
-    hora_fin = models.TimeField()
+    hora_ini = models.TimeField(blank=True)
+    hora_fin = models.TimeField(blank=True)
 
     def schedule(self):
         return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
