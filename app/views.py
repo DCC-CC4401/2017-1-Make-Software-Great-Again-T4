@@ -21,17 +21,17 @@ def index(request):
 
 
 def actualizar_atributo(clase, atributo):
-    '''
+    """
     Entrega la lista actualizada del atributo correspondiente.
     :param clase: Class
     :param atributo: String
     :return: List[type:Class.atributo]
-    '''
+    """
 
-    list = []
+    lst = []
     for atr in clase.objects.all().order_by(atributo).values_list(atributo):
-        list.append((atr, atr))
-    return list
+        lst.append((atr, atr))
+    return lst
 
 
 class Login(View):
@@ -106,24 +106,24 @@ class SignUp(View):
         form = SignUpForm(request.POST)
         if form.is_valid():
             if form.cleaned_data['password'] != form.cleaned_data['repassword']:
-                return render(request, 'app/signup.html', {'message':                                                               'Las contraseñas no coinciden', 'form': form})
+                return render(request, 'app/signup.html', {'message': 'Las contraseñas no coinciden', 'form': form})
             else:
                 try:
                     tipo = form.cleaned_data['tipo']
-                    if (tipo == "1"):
+                    if tipo == "1":
                         agregar_usuario(form.cleaned_data)
-                    if (tipo == "2"):
-                        if (form.cleaned_data['hora_ini'] is None):
+                    if tipo == "2":
+                        if form.cleaned_data['hora_ini'] is None:
                             raise KeyError('Ingresa hora de inicio')
-                        if (form.cleaned_data['hora_fin' is None]):
+                        if form.cleaned_data['hora_fin' is None]:
                             raise KeyError('Ingresa hora de termino')
                         agregar_vendedor_fijo(form.cleaned_data)
-                    if (tipo == "3"):
+                    if tipo == "3":
                         agregar_vendedor_ambulante(form.cleaned_data)
                     return render(request, 'app/login.html', {
                         'message': 'Cuenta creada satisfactoriamente', 'form': form, })
                 except IntegrityError:
-                    return render(request,'app/signup.html',{'message':'El usuario ya esta en uso',  'form':form})
+                    return render(request, 'app/signup.html', {'message': 'El usuario ya esta en uso', 'form': form})
                 except KeyError as e:
                     return render(request, 'app/signup.html', {'message': e.args[0], 'form': form})
         else:
@@ -136,10 +136,10 @@ class EditAccount(View):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.choices.append(actualizar_atributo(FormasDePago,'metodo'))
- #       self.choices = []
-  #      for i in FormasDePago.objects.all().values():
-   #         self.choices.append((i['metodo'], i['metodo']))
+        self.choices.append(actualizar_atributo(FormasDePago, 'metodo'))
+        #       self.choices = []
+        #      for i in FormasDePago.objects.all().values():
+        #         self.choices.append((i['metodo'], i['metodo']))
 
     def get(self, request):
         if not request.user.is_authenticated():
