@@ -23,8 +23,7 @@ def agregar_usuario(data):
 def agregar_vendedor_fijo(data):
     agregar_usuario(data)
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
-
-    p = VendedorFijo(usuario=user,hora_ini=data['hora_ini'],hora_fin=data['hora_fin'])
+    p = VendedorFijo(usuario=user, hora_ini=data['hora_ini'], hora_fin=data['hora_fin'])
     for i in data['formas_pago']:
         p.formas_pago.add(FormasDePago.objects.get(metodo=i))
     p.save()
@@ -42,13 +41,12 @@ def agregar_vendedor_ambulante(data):
     print("Vendedor ambulante guardado")
 
 
-def add_product(data):
-    user = Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username=data['username'])))
-    icon = ProductIcon.objects.get(name=data['icon'])
-    p = Producto(vendedor=user, nombre=data['name'], imagen=data['photo'], icono=icon,
-                 descripcion=data['des'], stock=data['stock'], precio=data['price'])
-    p.save()
-    for i in data['category']:
+def crear_producto(vendedor, data):
+    icono = ProductIcon.objects.get(name=data['icono'])
+    p = Producto(vendedor=vendedor, nombre=data['nombre'], imagen=data['imagen'], icono=icono,
+                 descripcion=data['descripcion'], stock=data['stock'], precio=data['precio'])
+    for i in data['categorias']:
+        print(i)
         p.categorias.add(Categoria.objects.get(nombre=i))
     p.save()
     print("Producto guardado")
@@ -85,14 +83,7 @@ def add_stat(data):
         p = Transacciones.objects.create(vendedor=vendor, fecha=data['date'], cantidad=data['amount'], producto=product)
         p.save()
 
-
-def test():
-    User.objects.create_superuser(username='admin', email='bal@123.ck', password='1234')
-
-    add_category('Almuerzos')
-    add_category('Snack')
-    add_category('Postres')
-
+def add_icons():
     # Add all the original icons
     icon_dict_list = [
         {'name': 'bread', 'icon': 'static/img/bread.png'},
@@ -117,6 +108,15 @@ def test():
     ]
     for idata in icon_dict_list:
         add_product_icon(idata)
+
+def test():
+    User.objects.create_superuser(username='admin', email='bal@123.ck', password='1234')
+
+    add_category('Almuerzos')
+    add_category('Snack')
+    add_category('Postres')
+
+
 
     add_payment('tarjeta')
     add_payment('efectivo')
@@ -203,9 +203,9 @@ def test():
         'price': 300
     }
 
-    add_product(product_1)
-    add_product(product_2)
-    add_product(product_3)
+    crear_producto(product_1)
+    crear_producto(product_2)
+    crear_producto(product_3)
 
     stat1 = {
         'username': 'vendor1',

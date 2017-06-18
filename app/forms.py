@@ -51,9 +51,9 @@ class SignUpForm(EditarCuenta):
 
 class AgregarProductoForm(forms.Form):
     nombre = forms.CharField(max_length=200, required=True)
-    elecciones = []
-    categorias = forms.MultipleChoiceField(choices=elecciones,
-                                           widget=forms.SelectMultiple(attrs={'class': 'multiple'}), required=False)
+    choices = []
+    categorias = forms.MultipleChoiceField(required=False, choices=choices,
+                                            widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
     descripcion = forms.CharField(required=False, max_length=500,
                                   widget=forms.Textarea(attrs={'class': 'materialize-textarea'}))
     stock = forms.IntegerField(required=False)

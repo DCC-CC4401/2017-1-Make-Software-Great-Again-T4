@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^stock/$', views.stock, name='stock'),
     url(r'^stats/$', views.stats, name='stats'),
     url(r'^edit_account$', views.EditAccount.as_view(), name='edit_account'),
+    url(r'^agregar_producto$', views.AgregarProducto.as_view(), name='add_product'),
     url(r'^edit_product/(?P<pid>[0-9]+)/$', views.EditProduct.as_view(), name='edit_products'),
     url(r'^vendor/(?P<pid>[0-9]+)/$', views.vendor_info, name='vendor_info'),
     url(r'^ajax/like/$', views.like, name='like'),
