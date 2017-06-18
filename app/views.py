@@ -164,13 +164,13 @@ class SignUp(View):
 
 
 class EditAccount(View):
-    choices = []
+    choices_pay = []
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.choices = []
+        self.choices_pay = []
         for i in FormasDePago.objects.all().values():
-            self.choices.append((i['metodo'], i['metodo']))
+            self.choices_pay.append((i['metodo'], i['metodo']))
 
     def get(self, request):
         if not request.user.is_authenticated():
@@ -191,13 +191,13 @@ class EditAccount(View):
             initial['formas_pago'] = payment
 
         form = EditarCuenta(initial=initial)
-        form.fields['formas_pago'].choices = self.choices
+        form.fields['formas_pago'].choices = self.choices_pay
         data['form'] = form
         return render(request, 'app/edit_account.html', data)
 
     def post(self, request):
         form = EditarCuenta(request.POST, request.FILES)
-        form.fields['formas_pago'].choices = self.choices
+        form.fields['formas_pago'].choices = self.choices_pay
         if not request.user.is_authenticated() or not form.is_valid():
             return self.get(request)
         user = Usuario.objects.get(user=request.user)
@@ -222,16 +222,26 @@ class EditAccount(View):
 
 
 class EditProduct(View):
-    @staticmethod
-    def get(request, pid):
+    categories = []
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.categories = []
+        for i in Categoria.objects.all().values():
+            self.categories.append((i['nombre'], i['nombre']))
+
+    def get(self, request, pid):
         try:
             user = Usuario.objects.get(user=request.user)
             vendor = Vendedor.objects.get(usuario=user)
             products = Producto.objects.filter(vendedor=vendor)
             product = products.get(id=pid)
+            categories = [i['nombre'] for i in product.categorias.values()]
             initial = {'nombre': product.nombre, 'precio': product.precio,
-                       'stock': product.stock, 'descripcion': product.descripcion}
+                       'stock': product.stock, 'descripcion': product.descripcion,
+                       'categorias': categories}
             form = EditarProductoForm(initial=initial)
+            form.fields['categorias'].choices = self.categories
             return render(request, 'app/edit_product.html', {'form': form, 'user': user,
                                                              'vendor': vendor, 'product': product})
         except:
@@ -244,6 +254,7 @@ class EditProduct(View):
             products = Producto.objects.filter(vendedor=vendor)
             product = products.get(id=pid)
             form = EditarProductoForm(request.POST, request.FILES)
+            form.fields['categorias'].choices = self.categories
             if not form.is_valid():
                 return self.get(request, pid)
             product.nombre = form.cleaned_data['nombre']
@@ -252,6 +263,10 @@ class EditProduct(View):
             product.descripcion = form.cleaned_data['descripcion']
             if form.cleaned_data['imagen'] is not None:
                 product.imagen = form.cleaned_data['imagen']
+
+            product.categorias.clear()
+            for i in form.cleaned_data['categorias']:
+                product.categorias.add(Categoria.objects.get(nombre=i))
             product.save()
         finally:
             return HttpResponseRedirect(reverse('home'))
@@ -271,7 +286,7 @@ class AgregarProducto(View):
         user = Usuario.objects.get(user=request.user)
         vendor = Vendedor.objects.get(usuario=user)
         form = AgregarProductoForm()
-        #form.fields['categorias'].choices = actualizar_atributo(Categoria, 'nombre')
+        # form.fields['categorias'].choices = actualizar_atributo(Categoria, 'nombre')
         form.fields['categorias'].choices = self.choices
         return render(request, 'app/agregar_producto.html', {'form': form, 'user': user})
 
@@ -287,14 +302,14 @@ class AgregarProducto(View):
                 icono = 'bread'
             form.cleaned_data['icono'] = icono
             crear_producto(vendedor, form.cleaned_data)
-            #return render(request, 'app/agregar_producto.html',
-             #             {'message': 'Producto agregado satisfactoriamente', 'form': form, 'user': request.user})
+            # return render(request, 'app/agregar_producto.html',
+            #             {'message': 'Producto agregado satisfactoriamente', 'form': form, 'user': request.user})
             return HttpResponseRedirect(reverse('home'))
         else:
             form = AgregarProductoForm()
             form.fields['categorias'].choices = self.choices
             return render(request, 'app/agregar_producto.html',
-                      {'error_message': 'Hubo un error con el formulario', 'form': form, 'user': request.user})
+                          {'error_message': 'Hubo un error con el formulario', 'form': form, 'user': request.user})
 
 
 def vendor_info(request, pid):
