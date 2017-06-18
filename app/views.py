@@ -2,9 +2,14 @@
 import datetime
 import time
 
+from dateutil.relativedelta import relativedelta
 from django.db import IntegrityError
 from django.contrib import auth
 from django.contrib.auth import authenticate
+from django.db.models import Case, IntegerField
+from django.db.models import F
+from django.db.models import Sum
+from django.db.models import When
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -17,6 +22,8 @@ from app.utils import agregar_usuario, agregar_vendedor_ambulante, agregar_vende
 
 
 def index(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('home'))
     return render(request, 'app/index.html')
 
 
@@ -87,7 +94,60 @@ def stock(request):
 
 
 def stats(request):
-    return None
+    try:
+        user = Usuario.objects.get(user=request.user)
+        vendor = Vendedor.objects.get(usuario=user)
+        current_date = datetime.datetime.now().replace(microsecond=0).date()
+        delta = relativedelta(day=+6)
+        delayed_day = current_date - delta
+        transactions = Transacciones.objects.filter(vendedor=vendor)
+        days = {}
+        earnings = [None] * 7
+        for i in range(6, -1, -1):
+            key = current_date - datetime.timedelta(days=+i)
+            days[key] = i
+            earnings[i] = ([key.strftime('%d-%m-%Y'), 0])
+        earnigs_per_day = [i for i in transactions.filter(
+            fecha__gte=delayed_day, fecha__lte=current_date).values('fecha').annotate(monto=Sum('cantidad'))]
+        transactions_today = transactions.filter(fecha=current_date)
+        earnigs_per_product_today_raw = transactions_today.values('producto__nombre').annotate(cant=Sum(
+            Case(
+                When(cantidad__gte=0, then=1),
+                When(cantidad__lt=0, then=-1),
+                default=0,
+                output_field=IntegerField())
+        ),
+            precio=Case(
+                When(cantidad__gte=0, then=F('cantidad')),
+                When(cantidad__lt=0, then=-1 * F('cantidad')),
+                default=0,
+                output_field=IntegerField()
+            ),
+            total=F('precio') * F('cant'))
+
+        earnigs_per_product_today_detail = [i for i in earnigs_per_product_today_raw]
+        earnigs_per_product_today = [i for i in earnigs_per_product_today_raw.values('producto__nombre', 'total')]
+        total_today = transactions_today.values('cantidad').aggregate(tot=Sum('cantidad'))['tot']
+        total_today = total_today if total_today is not None else 0
+        for j in earnigs_per_day:
+            earnings[days[j['fecha']]][1] += j['monto']
+
+        charts = {
+            'today': {
+                'products': [i['producto__nombre'] for i in earnigs_per_product_today],
+                'amounts': ['monto'] + [i['total'] for i in earnigs_per_product_today]
+            },
+            'interval': {
+                'dates': ['x'] + [i[0] for i in earnings][::-1],
+                'amounts': ['monto'] + [j[1] for j in earnings][::-1]
+            }
+        }
+        return render(request, 'app/stats.html', {'user': user, 'vendor': vendor, 'charts': charts,
+                                                  'total': total_today, 'table': earnigs_per_product_today_detail
+                                                  })
+
+    except:
+        return HttpResponseRedirect(reverse('home'))
 
 
 def logout(request):
@@ -388,3 +448,33 @@ def adm_stock(request):
 
     product.save()
     return JsonResponse({'new_stock': product.stock})
+
+
+def interval_chart(request):
+    try:
+        low_raw = request.POST['low']
+        high_raw = request.POST['high']
+        low = datetime.datetime.strptime(low_raw, '%d-%m-%Y').date()
+        high = datetime.datetime.strptime(high_raw, '%d-%m-%Y').date()
+
+        user = Usuario.objects.get(user=request.user)
+        vendor = Vendedor.objects.get(usuario=user)
+        delta = (high - low).days
+        transactions = Transacciones.objects.filter(vendedor=vendor)
+        days = {}
+        earnings = [None] * (delta + 1)
+        for i in range(delta, -1, -1):
+            key = high - datetime.timedelta(days=+i)
+            days[key] = i
+            earnings[i] = ([key.strftime('%d-%m-%Y'), 0])
+        earnigs_per_day = [i for i in transactions.filter(
+            fecha__gte=low, fecha__lte=high).values('fecha').annotate(monto=Sum('cantidad'))]
+        for j in earnigs_per_day:
+            earnings[days[j['fecha']]][1] += j['monto']
+        data = {
+            'dates': ['x'] + [i[0] for i in earnings][::-1],
+            'amounts': ['monto'] + [j[1] for j in earnings][::-1]
+        }
+        return JsonResponse(data)
+    except:
+        return JsonResponse({})

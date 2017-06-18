@@ -1,0 +1,220 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block content %}
+    <script>
+
+        $(document).ready(function () {
+            $('select').material_select();
+            $('.datepicker').pickadate({
+                selectMonths: true, // Creates a dropdown to control month
+                selectYears: 15, // Creates a dropdown of 15 years to control year
+                format: 'dd-mm-yyyy'
+            });
+
+            let delay = new Date();
+            delay.setDate(delay.getDate() - 6);
+            $('#high').pickadate().pickadate('picker').set('select', new Date());
+            $('#low').pickadate().pickadate('picker').set('select', delay);
+
+        });
+
+
+    </script>
+    <link href="{% static 'css/c3.css' %}" rel="stylesheet" type="text/css">
+    <script src="{% static 'js/d3.v3.js' %}" charset="utf-8"></script>
+    <script src="{% static 'js/c3.min.js' %}"></script>
+    <div class="section"></div>
+    <h4 class="teal-text" style="text-align: center;">Estadisticas</h4>
+    <div class="section"></div>
+
+    <div class="section">
+        <div class="z-depth-1 grey lighten-4 row resp-content">
+            <div class="col s12 m12">
+                <div class="row">
+                    <div id="day_chart"></div>
+                </div>
+                <div class="row">
+                    <table class="centered responsive-table">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Ganancia</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for product in table %}
+                            <tr>
+                                <td>{{ product.producto__nombre }}</td>
+                                <td>{{ product.cant }}</td>
+                                <td>{{ product.precio }}</td>
+                                <td>{{ product.total }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col s3"></div>
+                    <div class="col s3"></div>
+                    <div class="col s3 m3 center-align">Total:</div>
+                    <div class="col s3 m3 center-align">{{ total }}</div>
+                </div>
+            </div>
+
+        </div>
+        <div class="z-depth-1 grey lighten-4 row resp-content">
+            <div class="col s12 m12">
+                <div class="row">
+                    <div id="interval_chart"></div>
+                </div>
+                <form class="col m12">
+                    <div class="row">
+                        <div class="input-field col s6 ">
+                            <input id="low" onchange="updateIntervalChart()" type="date" class="datepicker">
+                            <label for="low">Fecha inicio</label>
+                        </div>
+
+                        <div class="input-field col s6">
+                            <input id="high" onchange="updateIntervalChart()" type="date" class="datepicker">
+                            <label for="high">Fecha Termino</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script>
+            function rotate() {
+                if (window.innerWidth <= 425) return 90;
+                return 0;
+            }
+
+            function process(date) {
+                const parts = date.split("-");
+                const new_date = new Date(parts[1] + "-" + parts[0] + "-" + parts[2]);
+                return new_date.getTime();
+            }
+            $ajaxSetup();
+
+            function updateIntervalChart() {
+                let low = $('#low').val();
+                let high = $('#high').val();
+                if (process(low) > process(high)) {
+                    alert(low + ' es despues que ' + high);
+                }
+                else {
+                    $.ajax({
+                        type: "POST",
+                        url: '/ajax/stats/',
+                        dataType: 'json',
+                        data: {
+                            low: low,
+                            high: high
+                        },
+                        success: function (data) {
+                            $('#interval_chart').empty();
+                            c3.generate({
+                                bindto: '#interval_chart',
+                                data: {
+                                    x: 'x',
+                                    xFormat: '%d-%m-%Y',
+                                    columns: [
+                                        data.dates,
+                                        data.amounts
+                                    ],
+                                    type: 'bar'
+                                },
+                                axis: {
+                                    x: {
+                                        label: 'Fecha',
+                                        type: 'timeseries',
+                                        tick: {
+                                            format: '%d-%m-%Y',
+                                            rotate: rotate()
+                                        }
+                                    },
+                                    y: {
+                                        label: 'Monto'
+                                    }
+                                },
+                                bar: {
+                                    width: {
+                                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                                    }
+                                    // or
+                                    //width: 100 // this makes bar width 100px
+                                },
+                                title: {
+                                    text: "Ganancias por Fecha"
+                                }
+                            });
+                        }
+
+                    });
+                }
+            }
+            let dayChart = c3.generate({
+                bindto: '#day_chart',
+                data: {
+                    columns: [
+                        {{ charts.today.amounts | safe}}
+                    ],
+                    type: 'bar'
+                },
+                axis: {
+                    x: {
+                        label: 'Categoria',
+                        type: 'category',
+                        categories: {{ charts.today.products | safe}},
+                        tick: {
+                            rotate: rotate()
+                        }
+                    },
+                    y: {label: 'Monto'}
+                },
+                title: {
+                    text: "Ganancias del Dia"
+                }
+            });
+            let chart = c3.generate({
+                bindto: '#interval_chart',
+                data: {
+                    x: 'x',
+                    xFormat: '%d-%m-%Y',
+                    columns: [
+                        {{ charts.interval.dates | safe}},
+                        {{ charts.interval.amounts | safe }}
+                    ],
+                    type: 'bar'
+                },
+                axis: {
+                    x: {
+                        label: 'Fecha',
+                        type: 'timeseries',
+                        tick: {
+                            format: '%d-%m-%Y',
+                            rotate: rotate()
+                        }
+                    },
+                    y: {
+                        label: 'Monto'
+                    }
+                },
+                bar: {
+                    width: {
+                        ratio: 0.5 // this makes bar width 50% of length between ticks
+                    }
+                    // or
+                    //width: 100 // this makes bar width 100px
+                },
+                title: {
+                    text: "Ganancias por Fecha"
+                }
+            });
+        </script>
+
+    </div>
+{% endblock %}
