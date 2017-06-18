@@ -284,7 +284,7 @@ class AgregarProducto(View):
     def get(self, request):
 
         user = Usuario.objects.get(user=request.user)
-        vendor = Vendedor.objects.get(usuario=user)
+#        vendor = Vendedor.objects.get(usuario=user)
         form = AgregarProductoForm()
         # form.fields['categorias'].choices = actualizar_atributo(Categoria, 'nombre')
         form.fields['categorias'].choices = self.choices
@@ -295,6 +295,7 @@ class AgregarProducto(View):
         user = Usuario.objects.get(user=request.user)
         vendedor = Vendedor.objects.get(usuario=user)
         form = AgregarProductoForm(request.POST, request.FILES)
+        form.fields['categorias'].choices = self.choices
         if form.is_valid():
             icono = request.POST.get('icon-button')
             if icono is None:

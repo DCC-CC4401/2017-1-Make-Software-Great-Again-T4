@@ -24,6 +24,7 @@ def agregar_vendedor_fijo(data):
     agregar_usuario(data)
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
     p = VendedorFijo(usuario=user, hora_ini=data['hora_ini'], hora_fin=data['hora_fin'])
+    p.save()
     for i in data['formas_pago']:
         p.formas_pago.add(FormasDePago.objects.get(metodo=i))
     p.save()
@@ -35,6 +36,7 @@ def agregar_vendedor_ambulante(data):
     user = Usuario.objects.get(user=User.objects.get(username=data['username']))
 
     p = VendedorAmbulante(usuario=user)
+    p.save()
     for i in data['formas_pago']:
         p.formas_pago.add(FormasDePago.objects.get(metodo=i))
     p.save()
@@ -45,8 +47,8 @@ def crear_producto(vendedor, data):
     icono = ProductIcon.objects.get(name=data['icono'])
     p = Producto(vendedor=vendedor, nombre=data['nombre'], imagen=data['imagen'], icono=icono,
                  descripcion=data['descripcion'], stock=data['stock'], precio=data['precio'])
+    p.save()
     for i in data['categorias']:
-        print(i)
         p.categorias.add(Categoria.objects.get(nombre=i))
     p.save()
     print("Producto guardado")
