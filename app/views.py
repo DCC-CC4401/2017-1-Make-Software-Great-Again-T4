@@ -2,16 +2,11 @@
 import datetime
 import time
 
-from dateutil.relativedelta import relativedelta
-from django.db import IntegrityError
 from django.contrib import auth
 from django.contrib.auth import authenticate
-from django.db.models import Case, IntegerField
-from django.db.models import F
-from django.db.models import Sum
-from django.db.models import When
-from django.http import HttpResponseRedirect
-from django.http import JsonResponse
+from django.db import IntegrityError
+from django.db.models import Case, IntegerField, F, Sum, When
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
@@ -98,17 +93,7 @@ def stats(request):
         user = Usuario.objects.get(user=request.user)
         vendor = Vendedor.objects.get(usuario=user)
         current_date = datetime.datetime.now().replace(microsecond=0).date()
-        delta = relativedelta(day=+6)
-        delayed_day = current_date - delta
         transactions = Transacciones.objects.filter(vendedor=vendor)
-        days = {}
-        earnings = [None] * 7
-        for i in range(6, -1, -1):
-            key = current_date - datetime.timedelta(days=+i)
-            days[key] = i
-            earnings[i] = ([key.strftime('%d-%m-%Y'), 0])
-        earnigs_per_day = [i for i in transactions.filter(
-            fecha__gte=delayed_day, fecha__lte=current_date).values('fecha').annotate(monto=Sum('cantidad'))]
         transactions_today = transactions.filter(fecha=current_date)
         earnigs_per_product_today_raw = transactions_today.values('producto__nombre').annotate(cant=Sum(
             Case(
@@ -124,28 +109,20 @@ def stats(request):
                 output_field=IntegerField()
             ),
             total=F('precio') * F('cant'))
-
         earnigs_per_product_today_detail = [i for i in earnigs_per_product_today_raw]
         earnigs_per_product_today = [i for i in earnigs_per_product_today_raw.values('producto__nombre', 'total')]
         total_today = transactions_today.values('cantidad').aggregate(tot=Sum('cantidad'))['tot']
         total_today = total_today if total_today is not None else 0
-        for j in earnigs_per_day:
-            earnings[days[j['fecha']]][1] += j['monto']
 
         charts = {
             'today': {
                 'products': [i['producto__nombre'] for i in earnigs_per_product_today],
                 'amounts': ['monto'] + [i['total'] for i in earnigs_per_product_today]
             },
-            'interval': {
-                'dates': ['x'] + [i[0] for i in earnings][::-1],
-                'amounts': ['monto'] + [j[1] for j in earnings][::-1]
-            }
         }
         return render(request, 'app/stats.html', {'user': user, 'vendor': vendor, 'charts': charts,
                                                   'total': total_today, 'table': earnigs_per_product_today_detail
                                                   })
-
     except:
         return HttpResponseRedirect(reverse('home'))
 
@@ -381,10 +358,8 @@ def like(request):
 def check_in(request):
     user = Usuario.objects.get(user=request.user)
     vendor = Vendedor.objects.get(usuario=user)
-
     vendor.activo = True if not vendor.activo else False
     vendor.save()
-
     return JsonResponse({
         'is_active': vendor.activo
     })
@@ -433,7 +408,6 @@ def adm_stock(request):
     vendor = Vendedor.objects.get(usuario=user)
     product = Producto.objects.get(id=pid)
     action = request.POST.get('action')
-    # print type(action)
     if action == 'true':  # suma
         product.stock += 1
         p = Transacciones.objects.create(vendedor=vendor, fecha=datetime.datetime.now().date(),
@@ -456,7 +430,6 @@ def interval_chart(request):
         high_raw = request.POST['high']
         low = datetime.datetime.strptime(low_raw, '%d-%m-%Y').date()
         high = datetime.datetime.strptime(high_raw, '%d-%m-%Y').date()
-
         user = Usuario.objects.get(user=request.user)
         vendor = Vendedor.objects.get(usuario=user)
         delta = (high - low).days
