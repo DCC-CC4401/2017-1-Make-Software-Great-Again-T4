@@ -55,8 +55,8 @@ class Vendedor(models.Model):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
-    lat = models.DecimalField(default=0, max_digits=10, decimal_places=2)
-    lng = models.DecimalField(default=0, max_digits=10, decimal_places=2)
+    lat = models.DecimalField(default=0, max_digits=10, decimal_places=7)
+    lng = models.DecimalField(default=0, max_digits=10, decimal_places=7)
     numero_favoritos = models.PositiveIntegerField(default=0, editable=False)
 
     def payment_str(self):

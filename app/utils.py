@@ -260,10 +260,13 @@ def crear_usuario(tipo, form):
     if tipo == "1":
         agregar_usuario(form.cleaned_data)
     if tipo == "2":
+        print(form.cleaned_data)
         if form.cleaned_data['hora_ini'] is None:
             raise KeyError('Ingresa hora de inicio')
         if form.cleaned_data['hora_fin'] is None:
             raise KeyError('Ingresa hora de termino')
+        if form.cleaned_data['lat'] is None or form.cleaned_data['lng'] is None:
+            raise KeyError('Ingresa posición en el mapa')
         agregar_vendedor_fijo(form.cleaned_data)
     if tipo == "3":
         agregar_vendedor_ambulante(form.cleaned_data)

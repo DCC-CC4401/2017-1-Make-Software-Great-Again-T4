@@ -4,20 +4,23 @@
     <script>
         $(document).ready(function () {
             $('select').material_select();
+            $('#map2').css('height', '20em')
         });
 
         $(function () {
             $('#id_tipo').on('change', function () {
-                var selected = $('#id_tipo').find('option:selected').val();
-                $('#hours').css('visibility', 'visible');
-                $('#vendor_info').css('visibility', 'visible');
-                if (selected == "0"){
+                let selected = $('#id_tipo').find('option:selected').val();
+                //$('#hours').css('visibility', 'visible');
+                //$('#vendor_info').css('visibility', 'visible');
+                //$('#hours').slideUp()
+                if (selected == "0") {
                     $('#hours').slideUp();
                     $('#vendor_info').slideUp();
                 }
                 if (selected == "2") {
                     $('#hours').slideDown();
                     $('#vendor_info').slideDown();
+                    initMap()
                 }
                 if (selected == "3") {
                     $('#hours').slideUp();
@@ -39,7 +42,7 @@
              style="margin : 5%; padding: 1.6em;">
 
             <form class="col s12 m12" method="post"
-                enctype = multipart/form-data>{%csrf_token%}
+                  enctype=multipart/form-data>{% csrf_token %}
                 <div class='row'>
                     <div class='col s12 m12'>
                     </div>
@@ -85,13 +88,23 @@
                         <div class="row">
                             <div class="input-field col s6">
                                 <i class="material-icons prefix">alarm</i>
-                                {{form.hora_ini}}
-                                <label for="icon_prefix">Hora inicial</label>
+                                {{ form.hora_ini }}
+                                <!--<label for="icon_prefix">Hora inicial</label>-->
                             </div>
                             <div class="input-field col s6">
                                 <i class="material-icons prefix">alarm</i>
-                                {{form.hora_fin}}
-                                <label for="icon_telephone">Hora final</label>
+                                {{ form.hora_fin }}
+                                <!--<label for="icon_telephone">Hora final</label>-->
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="row">
+                            <div id="map2"></div>
+                            <div class="input-field col s6 hide" >
+                                {{ form.lat }}
+                            </div>
+                            <div class="input-field col s6 hide">
+                                {{ form.lng }}
                             </div>
                         </div>
                     </div>
@@ -102,7 +115,7 @@
                     Insertar foto:
                 </div>
                 <div>
-                    {{form.avatar}}
+                    {{ form.avatar }}
 
                 </div>
 
@@ -130,13 +143,14 @@
                     </div>
                 </div>
                 <div class='row'>
-                        <div class='col s12'>
-                            <a class='red-text text-accent-2'><b>{{ message }}</b></a>
+                    <div class='col s12'>
+                        <a class='red-text text-accent-2'><b>{{ message }}</b></a>
 
-                        </div>
                     </div>
+                </div>
+
                 <div class='row'>
-                    <button type='submit' name='btn_login' class='col l6 offset-l3 btn btn-large waves-effect teal'>
+                    <button id="button_s" type='submit' name='btn_login' class='col l6 offset-l3 btn btn-large waves-effect teal'>
                         Registrarse
                     </button>
                 </div>
@@ -148,5 +162,41 @@
             href="{% url 'login' %}">Inicia sesión</a></div>
 
     <div style="padding-top: 4em"></div>
+
+    <script>
+        let marker = null;
+        function initMap() {
+            let beau850 = {lat: -33.457785, lng: -70.663808};
+            let map = new google.maps.Map(document.getElementById('map2'), {
+                zoom: 17,
+                center: beau850
+            });
+            map.addListener('click', function (e) {
+                placeMarker(e.latLng, map);
+            });
+        }
+        function placeMarker(latLng, map) {
+            if (marker === null) {
+                marker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    id: 'unique-marker'
+                });
+                $('#id_lat').val(latLng['lat']().toPrecision(7));
+                $('#id_lng').val(latLng['lng']().toPrecision(7));
+
+            }
+            else {
+                marker.setPosition(latLng);
+                //console.log(latLng['lat']().toPrecision(7));
+                $('#id_lat').val(latLng['lat']().toPrecision(7));
+                $('#id_lng').val(latLng['lng']().toPrecision(7));
+            }
+        }
+
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFZg-UjSTaZ7H_mRYH6bSdoCacLTsppQU&callback=initMap">
+    </script>
 
 {% endblock %}
