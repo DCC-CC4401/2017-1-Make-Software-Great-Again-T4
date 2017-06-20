@@ -13,27 +13,14 @@ from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, AgregarProductoForm, EditarProductoForm, SignUpForm
 from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria
-from app.utils import agregar_usuario, agregar_vendedor_ambulante, agregar_vendedor_fijo
+from app.utils import crear_usuario, \
+    clave_confirmada
 
 
 def index(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('home'))
     return render(request, 'app/index.html')
-
-
-def actualizar_atributo(clase, atributo):
-    """
-    Entrega la lista actualizada del atributo correspondiente.
-    :param clase: Class
-    :param atributo: String
-    :return: List[type:Class.atributo]
-    """
-
-    lst = []
-    for atr in clase.objects.all().order_by(atributo).values_list(atributo):
-        lst.append((atr, atr))
-    return lst
 
 
 class Login(View):
@@ -137,15 +124,23 @@ def test(request):
 
 
 class SignUp(View):
-    @staticmethod
-    def get(request):
+    choices_pay = []
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.choices_pay = []
+        for i in FormasDePago.objects.all().values():
+            self.choices_pay.append((i['metodo'], i['metodo']))
+
+    def get(self, request):
         form = SignUpForm()
-        form.fields['formas_pago'].choices = actualizar_atributo(FormasDePago, 'metodo')
+        form.fields['formas_pago'].choices = self.choices_pay
+        # form.fields['formas_pago'].choices = actualizar_atributo(FormasDePago, 'metodo')
         return render(request, 'app/signup.html', {'form': form})
 
-    @staticmethod
-    def post(request):
-        form = SignUpForm(request.POST)
+    def post(self, request):
+        form = SignUpForm(request.POST, request.FILES)
+        form.fields['formas_pago'].choices = self.choices_pay
         if form.is_valid():
             if clave_confirmada(form.cleaned_data):
                 return render(request, 'app/signup.html', {'message': 'Las contraseñas no coinciden', 'form': form})
@@ -284,7 +279,7 @@ class AgregarProducto(View):
     def get(self, request):
 
         user = Usuario.objects.get(user=request.user)
-#        vendor = Vendedor.objects.get(usuario=user)
+        #        vendor = Vendedor.objects.get(usuario=user)
         form = AgregarProductoForm()
         # form.fields['categorias'].choices = actualizar_atributo(Categoria, 'nombre')
         form.fields['categorias'].choices = self.choices
@@ -393,29 +388,6 @@ def delete_account(request):
     auth.logout(request)
     user.delete()
     return JsonResponse({'success': True})
-
-
-def clave_confirmada(data):
-    return data['password'] != data['repassword']
-
-
-def crear_usuario(tipo, form):
-    """
-    Envia a los datos a la funcion de crear usuario correspondiente.
-    :param tipo: String (Numero entre 1 - 3)
-    :param form: instancia de clase SignUpForm
-    :return:
-    """
-    if tipo == "1":
-        agregar_usuario(form.cleaned_data)
-    if tipo == "2":
-        if form.cleaned_data['hora_ini'] is None:
-            raise KeyError('Ingresa hora de inicio')
-        if form.cleaned_data['hora_fin'] is None:
-            raise KeyError('Ingresa hora de termino')
-        agregar_vendedor_fijo(form.cleaned_data)
-    if tipo == "3":
-        agregar_vendedor_ambulante(form.cleaned_data)
 
 
 def adm_stock(request):

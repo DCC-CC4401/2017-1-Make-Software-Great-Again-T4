@@ -1,5 +1,4 @@
 {% extends 'app/base.html' %}
-{% load static %}
 {% block content %}
 
     <script>
@@ -111,12 +110,9 @@
                     <div class='row'>
                         <div class='input-field col s12 m12'>
                             Seleccione sus formas de pago:
-                       <div>
-                        {{form.formas_pago}}
-                        </div>
+                            {{ form.formas_pago }}
                         </div>
                     </div>
-
                 </div>
 
                 <div class='row'>

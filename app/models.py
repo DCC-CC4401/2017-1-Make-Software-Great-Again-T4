@@ -45,7 +45,7 @@ class Usuario(models.Model):
     avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
-        return self.username
+        return self.user.username
 
     class Meta:
         db_table = 'usuario'
