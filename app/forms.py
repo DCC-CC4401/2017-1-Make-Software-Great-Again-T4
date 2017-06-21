@@ -35,6 +35,8 @@ class EditarCuenta(forms.Form):
     # dias_fin = forms.ChoiceField(choices=DIAS, required=False)
     hora_ini = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     hora_fin = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
+    lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
+    lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
 
 
 # Hereda los atributos del vendedor
@@ -47,13 +49,15 @@ class SignUpForm(EditarCuenta):
                              choices=elecciones_tipo, required=False)
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
+    lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
+    lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
 
 
 class AgregarProductoForm(forms.Form):
     nombre = forms.CharField(max_length=200, required=True)
     choices = []
     categorias = forms.MultipleChoiceField(required=False, choices=choices,
-                                            widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
+                                           widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
     descripcion = forms.CharField(required=False, max_length=500,
                                   widget=forms.Textarea(attrs={'class': 'materialize-textarea'}))
     stock = forms.IntegerField(required=False)
