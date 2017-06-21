@@ -168,3 +168,7 @@ class Transacciones(models.Model):
 
     class Meta:
         db_table = 'transacciones'
+
+class Alerta(models.Model):
+    posX =  models.FloatField()
+    posY =  models.FloatField()

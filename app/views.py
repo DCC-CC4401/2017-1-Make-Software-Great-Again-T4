@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
+import pusher
 
 from django.contrib import auth
 from django.contrib.auth import authenticate
@@ -12,9 +13,17 @@ from django.urls import reverse
 from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, AgregarProductoForm, EditarProductoForm, SignUpForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria, Alerta
 from app.utils import crear_usuario, \
     clave_confirmada
+
+pusher_client = pusher.Pusher(
+    app_id='355903',
+    key='160461660c08a8b505b0',
+    secret='ee6cf4222cc18c2ccb7e',
+    cluster='us2',
+    ssl=True
+)
 
 
 def index(request):
@@ -439,3 +448,15 @@ def interval_chart(request):
         return JsonResponse(data)
     except:
         return JsonResponse({})
+
+
+def alerta(request):
+    if request.method == 'POST':
+        try:
+            alert = Alerta(posX=request.POST["lat"], posY=request.POST["lng"])
+            alert.save()
+            pusher_client.trigger('my-channel', 'my-event', {'message': 'Vienen los pacos',
+                                                             'lat': request.POST["lat"], 'lng': request.POST["lng"]})
+            return JsonResponse({})
+        except:
+            return render(request, 'app/index.html')

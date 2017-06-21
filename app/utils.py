@@ -138,7 +138,7 @@ def test():
         'formas_pago': ['efectivo', 'tarjeta'],
         'state': True,
         'fav': 42,
-        'lan': 0.0,
+        'lat': 0.0,
         'lng': 0.0,
         'hora_ini': datetime.time(hour=12, minute=0),
         'hora_fin': datetime.time(hour=13, minute=0)
@@ -175,7 +175,7 @@ def test():
         'stack': True,
         'state': False,
         'fav': 42,
-        'lan': 0.0,
+        'lat': 0.0,
         'lng': 0.0,
     }
     agregar_vendedor_ambulante(data3)
