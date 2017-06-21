@@ -290,7 +290,6 @@ class ActiveVendors(View):
         active = Vendedor.objects.filter(activo=True)
         favorites = set(get_favorites())
 
-        return JsonResponse([{
-            'position': {'lat': float(vendor.lat), 'lng': float(vendor.lng)},
-            'fav': vendor in favorites
-        } for vendor in active if has_stock(vendor)], safe=False)
+        return JsonResponse([{**vendor.serialize(), **{
+           'fav': vendor in favorites
+        }} for vendor in active if has_stock(vendor)], safe=False)

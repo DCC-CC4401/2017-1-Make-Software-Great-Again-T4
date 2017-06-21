@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.db import models
 
+from polymorphic.models import PolymorphicModel
+
 DIAS = [
     (1, 'Lunes'),
     (2, 'Martes'),
@@ -52,7 +54,7 @@ class Usuario(models.Model):
         db_table = 'usuario'
 
 
-class Vendedor(models.Model):
+class Vendedor(PolymorphicModel):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
@@ -72,6 +74,26 @@ class Vendedor(models.Model):
     def tipo(self):
         return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
 
+    def serialize(self):
+        return {
+            'position': {'lat': float(self.lat), 'lng': float(self.lng)},
+            'state': 'A' if self.activo else 'I',
+            'payment': ', '.join(map(lambda pay: pay.metodo, self.formas_pago.all())),
+            'id': self.id,
+            'name': self.name(),
+            'avatar': self.avatar()
+        }
+
+    def name(self):
+        user = self.usuario.user
+        return "{} {}".format(user.first_name, user.last_name)
+
+    def avatar(self):
+        try:
+            return '/' + self.usuario.avatar.url
+        except ValueError:
+            return None
+
 
 # Hereda de Vendedor, se añaden horarios.
 # Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
@@ -83,6 +105,12 @@ class VendedorFijo(Vendedor):
 
     def schedule(self):
         return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
+
+    def serialize(self):
+        return {**super().serialize(), **{
+            'horaIni': self.hora_ini,
+            'horaFin': self.hora_fin
+        }}
 
 
 # Mismos atributos de Vendedor

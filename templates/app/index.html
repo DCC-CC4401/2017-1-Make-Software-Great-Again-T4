@@ -11,7 +11,8 @@
                         zoom: 19,
                         center: beau850
                     });
-                    infoWindow = new google.maps.InfoWindow;
+                    //infoWindow = new google.maps.InfoWindow;
+
                     /*
                     let info = '<div id="content">' +
                         '<div id="siteNotice">' +
@@ -57,17 +58,54 @@
                     });
 
                     function showVendors(vendors) {
-                        vendors.forEach(vendor => new google.maps.Marker({
-                            position: vendor.position,
-                            map: map,
-                            icon: vendor.fav ? star : undefined
-                        }));
+                        vendors.forEach(vendor => {
+                            const marker = new google.maps.Marker({
+                                position: vendor.position,
+                                map: map,
+                                icon: vendor.fav ? star : undefined
+                            });
+                            marker.addListener('click', () => {
+                                new google.maps.InfoWindow({
+                                    content: $ficha(vendor).html()
+                                }).open(map, marker);
+                            });
+                        });
                     }
+
                     /*
                     marker3.addListener('click', function () {
                         infoVendedor.open(map, marker3);
                     });
                     */
+
+                    function $ficha(vendor) {
+                        const field = (name, value) => $('<p>')
+                            .append($('<i>')
+                                .append(`${name}: `))
+                            .append(value);
+
+                        const hora = str => str.substr(0, 5);
+
+                        return $('<div>')
+                            .append($('<div style="width: 30em">')
+                                .append($('<p style="float: left">')
+                                    .append($(`<img src="${vendor.avatar}" width="50" hspace="10">`)))
+                                .append($('<h5>')
+                                    .append(vendor.name)))
+                            .append($('<p style="color: #029500">')
+                                .append(vendor.state === 'A' ? "Activo" : "Inactivo"))
+                            .append($('<div id="bodyContent">')
+                                .append($('<p>')
+                                    .append(vendor.descripcion))
+                                .append(field("Formas de pago", vendor.payment))
+                                .append(field("Horario", `${hora(vendor.horaIni)} - ${hora(vendor.horaFin)}`))
+                                .append(field("Favorito", vendor.fav ? "Sí" : "No"))
+                                .append($('<p style="text-align: right">')
+                                    .append($(`<a href="/vendor/${vendor.id}">`)
+                                        .append("Ver detalles"))));
+
+                    }
+
                     let gps = {
                         path: google.maps.SymbolPath.CIRCLE,
                         fillColor: '#4285f4',
