@@ -35,6 +35,8 @@ class EditarCuenta(forms.Form):
     # dias_fin = forms.ChoiceField(choices=DIAS, required=False)
     hora_ini = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     hora_fin = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
+    lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
+    lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
 
 
 # Hereda los atributos del vendedor

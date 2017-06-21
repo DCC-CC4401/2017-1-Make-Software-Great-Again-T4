@@ -193,6 +193,8 @@ class EditAccount(View):
             pay = vendor.formas_pago.values()
             payment = [i['metodo'] for i in pay]
             initial['formas_pago'] = payment
+            initial['lat'] = vendor.lat
+            initial['lng'] = vendor.lng
 
         form = EditarCuenta(initial=initial)
         form.fields['formas_pago'].choices = self.choices_pay
@@ -216,6 +218,9 @@ class EditAccount(View):
             vendor.formas_pago.clear()
             for i in pay:
                 vendor.formas_pago.add(FormasDePago.objects.get(metodo=i))
+            if user.tipo == 2:
+                vendor.lat = form.cleaned_data['lat']
+                vendor.lng = form.cleaned_data['lng']
             vendor.save()
             svendor = VendedorFijo.objects.get(usuario=user)
             svendor.hora_ini = form.cleaned_data['hora_ini']

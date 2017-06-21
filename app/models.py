@@ -47,6 +47,12 @@ class Usuario(models.Model):
     def __str__(self):
         return self.user.username
 
+    def imagen(self):
+        try:
+            return '/'+str(self.avatar.url)
+        except:
+            return '/static/img/' + 'AvatarVendedor3.png'
+
     class Meta:
         db_table = 'usuario'
 
@@ -169,6 +175,7 @@ class Transacciones(models.Model):
     class Meta:
         db_table = 'transacciones'
 
+
 class Alerta(models.Model):
-    posX =  models.FloatField()
-    posY =  models.FloatField()
+    posX = models.FloatField()
+    posY = models.FloatField()

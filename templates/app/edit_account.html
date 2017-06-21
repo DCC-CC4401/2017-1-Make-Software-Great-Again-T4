@@ -4,6 +4,7 @@
     <script>
         $(document).ready(function () {
             $('select').material_select();
+            $('#map2').css('height', '20em')
         });
 
     </script>
@@ -78,6 +79,15 @@
                             {{ form.hora_fin }}
                         </div>
                     </div>
+                    <div class="row">
+                        <div id="map2"></div>
+                        <div class="input-field col s6 hide">
+                            {{ form.lat }}
+                        </div>
+                        <div class="input-field col s6 hide">
+                            {{ form.lng }}
+                        </div>
+                    </div>
                 {% endif %}
                 <div>
                     <div class="col s12">
@@ -131,6 +141,43 @@
             </form>
         </div>
     </div>
+    {% if user.tipo == 2 %}
+        <script>
+            let marker = null;
+            function initMap() {
+                let beau850 = {lat: -33.457785, lng: -70.663808};
+                let map = new google.maps.Map(document.getElementById('map2'), {
+                    zoom: 17,
+                    center: beau850
+                });
+                marker = new google.maps.Marker({
+                    position: {lat: {{ vendor.lat }}, lng: {{ vendor.lng }}},
+                    map: map,
+                    id: 'unique-marker'
+                });
+                map.addListener('click', function (e) {
+                    placeMarker(e.latLng, map);
+                });
+            }
+            function placeMarker(latLng, map) {
+                marker.setPosition(latLng);
+                //console.log(latLng['lat']().toPrecision(7));
+                $('#id_lat').val(latLng['lat']().toPrecision(7));
+                $('#id_lng').val(latLng['lng']().toPrecision(7));
+
+            }
+            /*marker = new google.maps.Marker({
+             position: {lat: $('#id_lat').val(), lng: ('#id_lng').val()},
+             map: map,
+             id: 'unique-marker'
+             });
+             initMap();*/
+
+        </script>
+    {% endif %}
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFZg-UjSTaZ7H_mRYH6bSdoCacLTsppQU&callback=initMap">
+    </script>
 
 
 {% endblock %}

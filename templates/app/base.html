@@ -24,82 +24,93 @@
     <script src="{% static "js/cookies.js" %}"></script>
     <script src="https://js.pusher.com/4.0/pusher.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
     <script>
-
-        let global_lat = 0;
-        let global_lng = 0;
-
-        function geo(pos) {
-            global_lat = pos.coords.latitude;
-            global_lng = pos.coords.longitude
-        }
         $(document).ready(function () {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(geo);
-            }
-            else {
-                alert("tu wea no tiene gps"); // TODO: cambiar
-            }
-        });
-        $(function () {
-            $('.button-collapse').sideNav();
-        });
-        $ajaxSetup();
-        function getLocation() {
-            showPosition()
-        }
-        function showPosition() {
-            $.ajax({
-                type: 'POST',
-                url: '/ajax/alerta/',
-                dataType: 'json',
-                data: {
-                    lat: global_lat,
-                    lng: global_lng,
-                }
-            })
-        }
-
-        Pusher.logToConsole = true;
-
-        let pusher = new Pusher('160461660c08a8b505b0', {
-            cluster: 'us2',
-            encrypted: true
+            // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+            $('.modal').modal();
         });
 
-        let rad = function (x) {
-            return x * Math.PI / 180;
-        };
-
-        let getDistance = function (p1, p2) {
-            let R = 6378137; // Earth’s mean radius in meter
-            let dLat = rad(p2['lat'] - p1['lat']);
-            let dLong = rad(p2['lng'] - p1['lng']);
-            let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(rad(p1['lat'])) * Math.cos(rad(p2['lat'])) *
-                Math.sin(dLong / 2) * Math.sin(dLong / 2);
-            let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; // returns the distance in meter
-        };
-
-        let data_server = null;
-        let channel = pusher.subscribe('my-channel');
+    </script>
+    <script>
         {% if user.tipo >= 1 %}
+            let global_lat = 0;
+            let global_lng = 0;
+
+            function geo(pos) {
+                global_lat = pos.coords.latitude;
+                global_lng = pos.coords.longitude
+            }
+            $(document).ready(function () {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(geo);
+                }
+                else {
+                    alert("tu wea no tiene gps"); // TODO: cambiar
+                }
+            });
+            $(function () {
+                $('.button-collapse').sideNav();
+            });
+            $ajaxSetup();
+            function getLocation() {
+                showPosition()
+            }
+            function showPosition() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/ajax/alerta/',
+                    dataType: 'json',
+                    data: {
+                        lat: global_lat,
+                        lng: global_lng,
+                    }
+                })
+            }
+
+            Pusher.logToConsole = true;
+
+            let pusher = new Pusher('160461660c08a8b505b0', {
+                cluster: 'us2',
+                encrypted: true
+            });
+
+            let rad = function (x) {
+                return x * Math.PI / 180;
+            };
+
+            let getDistance = function (p1, p2) {
+                let R = 6378137; // Earth’s mean radius in meter
+                let dLat = rad(p2['lat'] - p1['lat']);
+                let dLong = rad(p2['lng'] - p1['lng']);
+                let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(rad(p1['lat'])) * Math.cos(rad(p2['lat'])) *
+                    Math.sin(dLong / 2) * Math.sin(dLong / 2);
+                let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c; // returns the distance in meter
+            };
+
+            let data_server = null;
+            let channel = pusher.subscribe('my-channel');
+
             channel.bind('my-event', function (data) {
                 data_server = data;
                 console.log(data_server);
                 noti();
             });
-            toastr.options.closeDuration = 300;
+            toastr.options.closeDuration = 1000;
+            toastr.options.fadeOut = 5000;
             let noti = function () {
                 if (window.Notification && Notification.permission !== "denied") {
                     Notification.requestPermission(function (status) {
+                        console.log(getDistance({lat: data_server['lat'], lng: data_server['lng']}, {
+                                lat: global_lat,
+                                lng: global_lng
+                            }));
                         if (getDistance({lat: data_server['lat'], lng: data_server['lng']}, {
                                 lat: global_lat,
                                 lng: global_lng
                             }) <= 50) {
-                            toastr.warning(data_server.message, {timeOut: 5000});
+                            toastr.warning(data_server.message, {timeOut: 10000});
                             navigator.vibrate([2000, 2000, 2000]);
                             /*let n = new Notification('Title', {
                              body: data_server.message,
@@ -146,7 +157,7 @@
                                          src="{% static 'img/AvatarPenguin.png' %}"></a>
                     {% else %}
                         <a href="#"><img style="margin-top: 16%;" class="circle"
-                                         src="/media/{{ user.avatar }}"></a>
+                                         src="{{ user.imagen }}"></a>
                     {% endif %}
 
                     <a href="#"><span style="margin-left: 5%;"
@@ -233,7 +244,7 @@
 
                 {% endif %}
                 {% if user.tipo >= 1 %}
-                    <li><a onclick="getLocation()"><i class="material-icons">warning</i>Enviar Alerta</a></li>
+                    <li><a href="#modal0"><i class="material-icons">warning</i>Enviar Alerta</a></li>
                 {% endif %}
 
             </ul>
@@ -241,6 +252,19 @@
     </header>
 
     <main>
+        {% if user.tipo >= 1 %}
+            <div id="modal0" class="modal">
+                <div class="modal-content">
+                    <h4>¿ Esta Seguro que quiere lanzar una alerta?</h4>
+
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat"
+                       onclick="getLocation()">Aceptar</a>
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat">Cancelar</a>
+                </div>
+            </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </main>
