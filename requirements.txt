@@ -1,3 +1,4 @@
+geopy
 django
 Pillow
 python-dateutil

@@ -24,10 +24,14 @@
     <script src="{% static "js/cookies.js" %}"></script>
     <script src="https://js.pusher.com/4.0/pusher.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <link rel="manifest" href="{% static 'js/manifest.json' %}">
     <script>
         $(document).ready(function () {
             // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+            $('.button-collapse').sideNav();
             $('.modal').modal();
+
         });
 
     </script>
@@ -45,7 +49,7 @@
                     navigator.geolocation.getCurrentPosition(geo);
                 }
                 else {
-                    alert("tu wea no tiene gps"); // TODO: cambiar
+                    alert("Tu dispositivo no tiene GPS activado");
                 }
             });
             $(function () {
@@ -67,62 +71,72 @@
                 })
             }
 
-            Pusher.logToConsole = true;
 
-            let pusher = new Pusher('160461660c08a8b505b0', {
-                cluster: 'us2',
-                encrypted: true
-            });
+            {% if user.tipo == 3 %}
+                toastr.options.closeDuration = 1000;
+                toastr.options.fadeOut = 5000;
 
-            let rad = function (x) {
-                return x * Math.PI / 180;
-            };
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('{% static 'js/firebase-messaging-sw.js' %}', {scope: '/static/js/'})
+                        .then((registration) => {
+                            console.log('Registration succeeded. Scope is ' + registration.scope);
+                            var config = {
+                                apiKey: "AIzaSyCeslgWEPN0XIpsbO1AJ1HyORXqhRciOFA",
+                                authDomain: "beau-chef.firebaseapp.com",
+                                databaseURL: "https://beau-chef.firebaseio.com",
+                                projectId: "beau-chef",
+                                storageBucket: "beau-chef.appspot.com",
+                                messagingSenderId: "746470197160"
+                            };
+                            firebase.initializeApp(config);
+                            const messaging = firebase.messaging();
+                            messaging.useServiceWorker(registration);
+                            messaging.requestPermission()
+                                .then(function () {
+                                    console.log('Notification permission granted.');
+                                    if (!sessionStorage.token) {
+                                        getTokenAndSend();
+                                    }
 
-            let getDistance = function (p1, p2) {
-                let R = 6378137; // Earth’s mean radius in meter
-                let dLat = rad(p2['lat'] - p1['lat']);
-                let dLong = rad(p2['lng'] - p1['lng']);
-                let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(rad(p1['lat'])) * Math.cos(rad(p2['lat'])) *
-                    Math.sin(dLong / 2) * Math.sin(dLong / 2);
-                let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                return R * c; // returns the distance in meter
-            };
+                                })
+                                .catch(function (err) {
+                                    console.log('Unable to get permission to notify.', err);
+                                });
 
-            let data_server = null;
-            let channel = pusher.subscribe('my-channel');
+                            function getTokenAndSend() {
+                                messaging.getToken()
+                                    .then(function (currentToken) {
+                                        if (currentToken) {
+                                            sessionStorage.token = currentToken;
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/ajax/token/',
+                                                dataType: 'json',
+                                                data: {
+                                                    token: currentToken,
+                                                }
+                                            })
+                                        } else {
+                                            console.log('No Instance ID token available. Request permission to generate one.');
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        console.log('An error occurred while retrieving token. ', err);
+                                    });
+                            }
 
-            channel.bind('my-event', function (data) {
-                data_server = data;
-                console.log(data_server);
-                noti();
-            });
-            toastr.options.closeDuration = 1000;
-            toastr.options.fadeOut = 5000;
-            let noti = function () {
-                if (window.Notification && Notification.permission !== "denied") {
-                    Notification.requestPermission(function (status) {
-                        console.log(getDistance({lat: data_server['lat'], lng: data_server['lng']}, {
-                                lat: global_lat,
-                                lng: global_lng
-                            }));
-                        if (getDistance({lat: data_server['lat'], lng: data_server['lng']}, {
-                                lat: global_lat,
-                                lng: global_lng
-                            }) <= 50) {
-                            toastr.warning(data_server.message, {timeOut: 10000});
-                            navigator.vibrate([2000, 2000, 2000]);
-                            /*let n = new Notification('Title', {
-                             body: data_server.message,
-                             icon: '% static 'img/AvatarVendedor1.png' %}' // optional
-                             });*/
-                        }
-                    })
+                            messaging.onMessage(function (payload) {
+                                console.log("Message received. ", payload);
+                                toastr.warning(payload.notification.body, {timeOut: 10000});
+                                navigator.vibrate([2000, 2000, 2000]);
+                            });
+                        }).catch(function (error) {
+                        // registration failed
+                        console.log('Registration failed with ' + error);
+                    });
                 }
-            };
+            {% endif %}
         {% endif %}
-
-
     </script>
 
 

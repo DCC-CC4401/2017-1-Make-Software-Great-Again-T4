@@ -270,3 +270,10 @@ def crear_usuario(tipo, form):
         agregar_vendedor_fijo(form.cleaned_data)
     if tipo == "3":
         agregar_vendedor_ambulante(form.cleaned_data)
+
+
+def dist(lat1, lng1, lat2, lng2):
+    from geopy.distance import vincenty
+    init = (lat1, lng1)
+    out = (lat2, lng2)
+    return vincenty(init, out).meters

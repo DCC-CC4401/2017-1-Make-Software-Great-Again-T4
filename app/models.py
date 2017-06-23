@@ -177,5 +177,11 @@ class Transacciones(models.Model):
 
 
 class Alerta(models.Model):
+    usuario = models.ForeignKey(Usuario)
     posX = models.FloatField()
     posY = models.FloatField()
+
+
+class Token(models.Model):
+    vendedor = models.ForeignKey(Vendedor)
+    token = models.CharField(max_length=1024)

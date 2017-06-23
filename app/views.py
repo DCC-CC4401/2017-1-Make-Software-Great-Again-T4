@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
+from functools import reduce
+
 import pusher
 
 from django.contrib import auth
@@ -13,17 +15,15 @@ from django.urls import reverse
 from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, AgregarProductoForm, EditarProductoForm, SignUpForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria, Alerta
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria, \
+    Alerta, \
+    Token
 from app.utils import crear_usuario, \
-    clave_confirmada
+    clave_confirmada, dist
 
-pusher_client = pusher.Pusher(
-    app_id='355903',
-    key='160461660c08a8b505b0',
-    secret='ee6cf4222cc18c2ccb7e',
-    cluster='us2',
-    ssl=True
-)
+from pyfcm import FCMNotification
+
+push_service = FCMNotification(api_key="AIzaSyCKN7gqnUnHEFSPcKpe7YdiXuDJJliObFM")
 
 
 def index(request):
@@ -144,7 +144,6 @@ class SignUp(View):
     def get(self, request):
         form = SignUpForm()
         form.fields['formas_pago'].choices = self.choices_pay
-        # form.fields['formas_pago'].choices = actualizar_atributo(FormasDePago, 'metodo')
         return render(request, 'app/signup.html', {'form': form})
 
     def post(self, request):
@@ -291,11 +290,8 @@ class AgregarProducto(View):
             self.choices.append((i['nombre'], i['nombre']))
 
     def get(self, request):
-
         user = Usuario.objects.get(user=request.user)
-        #        vendor = Vendedor.objects.get(usuario=user)
         form = AgregarProductoForm()
-        # form.fields['categorias'].choices = actualizar_atributo(Categoria, 'nombre')
         form.fields['categorias'].choices = self.choices
         return render(request, 'app/agregar_producto.html', {'form': form, 'user': user})
 
@@ -312,8 +308,7 @@ class AgregarProducto(View):
                 icono = 'bread'
             form.cleaned_data['icono'] = icono
             crear_producto(vendedor, form.cleaned_data)
-            # return render(request, 'app/agregar_producto.html',
-            #             {'message': 'Producto agregado satisfactoriamente', 'form': form, 'user': request.user})
+
             return HttpResponseRedirect(reverse('home'))
         else:
             form = AgregarProductoForm()
@@ -458,10 +453,27 @@ def interval_chart(request):
 def alerta(request):
     if request.method == 'POST':
         try:
-            alert = Alerta(posX=request.POST["lat"], posY=request.POST["lng"])
+            alert = Alerta(usuario=Usuario.objects.get(user=request.user), posX=request.POST["lat"],
+                           posY=request.POST["lng"])
             alert.save()
-            pusher_client.trigger('my-channel', 'my-event', {'message': 'Vienen los pacos',
-                                                             'lat': request.POST["lat"], 'lng': request.POST["lng"]})
+
+            tokens = [i for i in Token.objects.all()]
+
+            filtered_tokens = list(filter(
+                lambda x: dist(x.vendedor.lat, x.vendedor.lng, request.POST["lat"], request.POST["lng"]) <= 50,
+                tokens))
+            registration_ids = [i.token for i in filtered_tokens]
+            message_title = "Beau-Chef"
+            message_body = "Vienen los Carabineros"
+            push_service.notify_multiple_devices(registration_ids=registration_ids,
+                                                 message_title=message_title, message_body=message_body)
             return JsonResponse({})
         except:
             return render(request, 'app/index.html')
+
+
+def token(request):
+    user = Usuario.objects.get(user=request.user)
+    tok = Token(vendedor=Vendedor.objects.get(usuario=user), token=request.POST['token'])
+    tok.save()
+    return JsonResponse({})
