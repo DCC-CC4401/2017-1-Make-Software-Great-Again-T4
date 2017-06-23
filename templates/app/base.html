@@ -19,6 +19,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
     <!--<script src="http://materializecss.com/templates/starter-template/js/init.js"></script>-->
 
+    <!-- Ramda for functional programming patterns -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.24.1/ramda.min.js" integrity="sha256-yF1J6hzNIWN398K1d+n1XXGC3JEchH55G05dxM+rsFk=" crossorigin="anonymous"></script>
+
     {% load static %}
     <script src="{% static "js/cookies.js" %}"></script>
 
@@ -119,32 +122,7 @@
                         </li>
                     {% endif %}
                 {% endif %}
-                {% if user.tipo == 1 or not user.user.is_authenticated %}
-                    <li><a class="subheader">Filtros</a></li>
-                    {% if user.tipo == 1 %}
-                        <li>
-                            <div class="switch" style="margin-left: 10px;">
-                                <label>
-                                    <input type="checkbox"><span class="lever"></span>Sólo mostrar favoritos
-                                </label>
-                            </div>
-                        </li>
-                    {% endif %}
-                    <li>
-                        <div class="switch" style="margin-left: 10px;">
-                            <label>
-                                <input type="checkbox"><span class="lever"></span>Snacks
-                            </label>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="switch" style="margin-left: 10px;">
-                            <label>
-                                <input type="checkbox"><span class="lever"></span>Almuerzos
-                            </label>
-                        </div>
-                    </li>
-                {% endif %}
+                {% block filters %} {% endblock %}
             </ul>
         </div>
     </header>
