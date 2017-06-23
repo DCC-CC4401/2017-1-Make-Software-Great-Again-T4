@@ -23,4 +23,5 @@ urlpatterns = [
     url(r'^ajax/stock/$', views.adm_stock, name='adm_stock'),
     url(r'^ajax/stats/$', views.interval_chart, name='interval_chart'),
     url(r'^ajax/alerta/$', views.alerta, name='alerta'),
+    url(r'^ajax/token/$', views.token, name='token'),
 ]
