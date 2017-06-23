@@ -75,13 +75,15 @@ class Vendedor(PolymorphicModel):
         return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
 
     def serialize(self):
+        products = Producto.objects.filter(vendedor=self)
         return {
             'position': {'lat': float(self.lat), 'lng': float(self.lng)},
             'state': 'A' if self.activo else 'I',
             'payment': ', '.join(map(lambda pay: pay.metodo, self.formas_pago.all())),
             'id': self.id,
             'name': self.name(),
-            'avatar': self.avatar()
+            'avatar': self.avatar(),
+            'products': [product.serialize() for product in products]
         }
 
     def name(self):
@@ -154,6 +156,13 @@ class Producto(models.Model):
         for i in self.categorias.values():
             temp.append(i['nombre'])
         return ' '.join(temp)
+
+    def serialize(self):
+        return {
+            'categories': [category.nombre
+                           for category in self.categorias.all()],
+            'stock': self.stock
+        }
 
     class Meta:
         db_table = 'producto'

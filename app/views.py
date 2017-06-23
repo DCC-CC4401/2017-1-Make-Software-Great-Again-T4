@@ -12,11 +12,13 @@ from django.urls import reverse
 from django.views import View
 
 from app.forms import LoginForm, EditarCuenta, EditarProductoForm
-from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno
+from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Categoria
 
 
 def index(request):
-    return render(request, 'app/index.html')
+    return render(request, 'app/index.html', {
+        'categories': Categoria.objects.all()
+    })
 
 
 def login(request):
@@ -45,7 +47,10 @@ def home(request):
         return HttpResponseRedirect(reverse('login'))
     user = Usuario.objects.get(user=request.user)
     if user.tipo == 1:
-        return render(request, 'app/home.html', {'user': user})
+        return render(request, 'app/home.html', {
+            'user': user,
+            'categories': Categoria.objects.all()
+        })
     vendor = Vendedor.objects.get(usuario=user)
     update(vendor)
     products = []
