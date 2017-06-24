@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import datetime
 from django.contrib.auth.models import User
 from django.db import models
 from polymorphic.models import PolymorphicModel
@@ -74,6 +75,14 @@ class Vendedor(PolymorphicModel):
         return ' '.join(temp)
 
     def estado(self):
+        if self.usuario.tipo == 2:
+            t = datetime.datetime.now().time()
+            now = datetime.time(hour=t.hour, minute=t.minute)
+            if self.hora_ini <= now <= self.hora_fin:
+                self.activo = True
+            else:
+                self.activo = False
+
         return 'Activo' if self.activo else 'Inactivo'
 
     def tipo(self):

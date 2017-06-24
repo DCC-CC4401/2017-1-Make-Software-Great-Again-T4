@@ -44,7 +44,7 @@ class SignUpForm(EditarCuenta):
     username = forms.CharField(max_length=150, required=True)
     password = forms.CharField(widget=forms.PasswordInput, required=True)
     repassword = forms.CharField(widget=forms.PasswordInput, required=False)
-    elecciones_tipo = ((0, 'Admin'), (1, 'Alumno'), (2, 'Vendedor Fijo'), (3, 'Vendedor Ambulante'))
+    elecciones_tipo = ((1, 'Alumno'), (2, 'Vendedor Fijo'), (3, 'Vendedor Ambulante'))
     tipo = forms.ChoiceField(widget=forms.Select(attrs={'class': 'multiple'}),
                              choices=elecciones_tipo, required=False)
     first_name = forms.CharField(max_length=30, required=True)

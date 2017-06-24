@@ -388,7 +388,7 @@ def check_in(request):
         vendor.activo = False
     vendor.save()
     return JsonResponse({
-        'is_active': vendor.activo
+        'is_active': vendor.estado()
     })
 
 

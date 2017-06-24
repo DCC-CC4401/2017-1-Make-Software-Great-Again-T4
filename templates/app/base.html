@@ -214,8 +214,9 @@
                                             lat: window.global_lat,
                                             lng: window.global_lng
                                         },
-                                        success: function () {
-                                            location.reload();
+                                        success: function (data) {
+                                            console.log(data['is_active']);
+                                            $('.estado').html(data['is_active'])
                                         },
                                         /* revert lever if request fails */
                                         error: function () {
