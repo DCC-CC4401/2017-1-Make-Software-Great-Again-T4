@@ -68,7 +68,8 @@
                             .append($('<p>')
                                 .append(vendor.descripcion))
                             .append(field("Formas de pago", vendor.payment))
-                            .append(field("Horario", `${hora(vendor.horaIni)} - ${hora(vendor.horaFin)}`))
+                            .append(field("Horario", vendor.horaIni ?
+                                `${hora(vendor.horaIni)} - ${hora(vendor.horaFin)}` : "Vendedor ambulante"))
                             .append(field("Favorito", vendor.fav ? "Sí" : "No"))
                             .append($('<p style="text-align: right">')
                                 .append($(`<a href="/vendor/${vendor.id}">`)

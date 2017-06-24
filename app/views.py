@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 import datetime
 import time
-from functools import reduce
-
-import pusher
 
 from django.contrib import auth
 from django.contrib.auth import authenticate
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Case, IntegerField, F, Sum, When
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
+from pyfcm import FCMNotification
 
 from app.forms import LoginForm, EditarCuenta, AgregarProductoForm, EditarProductoForm, SignUpForm
 from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, Alumno, Transacciones, Categoria, \
@@ -21,8 +18,6 @@ from app.models import Usuario, Vendedor, Producto, VendedorFijo, FormasDePago, 
     Token
 from app.utils import crear_usuario, \
     clave_confirmada, dist
-
-from pyfcm import FCMNotification
 
 push_service = FCMNotification(api_key="AIzaSyCKN7gqnUnHEFSPcKpe7YdiXuDJJliObFM")
 
@@ -33,8 +28,8 @@ def index(request):
     return render(request, 'app/index.html', {
         'categories': Categoria.objects.all()
     })
-  
-  
+
+
 class Login(View):
     @staticmethod
     def get(request):
@@ -384,7 +379,13 @@ def like(request):
 def check_in(request):
     user = Usuario.objects.get(user=request.user)
     vendor = Vendedor.objects.get(usuario=user)
-    vendor.activo = True if not vendor.activo else False
+
+    if not vendor.activo:
+        vendor.activo = True
+        vendor.lat = request.POST.get('lat', 0.0)
+        vendor.lng = request.POST.get('lng', 0.0)
+    else:
+        vendor.activo = False
     vendor.save()
     return JsonResponse({
         'is_active': vendor.activo
@@ -404,6 +405,7 @@ def delete_account(request):
     user.delete()
     return JsonResponse({'success': True})
 
+
 class ActiveVendors(View):
     @staticmethod
     def post(request):
@@ -421,10 +423,10 @@ class ActiveVendors(View):
         favorites = set(get_favorites())
 
         return JsonResponse([{**vendor.serialize(), **{
-           'fav': vendor in favorites
+            'fav': vendor in favorites
         }} for vendor in active if has_stock(vendor)], safe=False)
-      
-   
+
+
 def adm_stock(request):
     user = Usuario.objects.get(user=request.user)
     pid = request.POST.get('id')
@@ -503,4 +505,3 @@ def token(request):
     tok = Token(vendedor=Vendedor.objects.get(usuario=user), token=request.POST['token'])
     tok.save()
     return JsonResponse({})
-

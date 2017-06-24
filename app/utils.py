@@ -138,7 +138,7 @@ def test():
         'formas_pago': ['efectivo', 'tarjeta'],
         'state': True,
         'fav': 42,
-        'lan': -33.457885,
+        'lat': -33.457885,
         'lng': -70.663808,
         'hora_ini': datetime.time(hour=12, minute=0),
         'hora_fin': datetime.time(hour=13, minute=0)
@@ -175,7 +175,7 @@ def test():
         'stack': True,
         'state': False,
         'fav': 42,
-        'lan': -33.458085,
+        'lat': -33.458085,
         'lng': -70.663808,
     }
     agregar_vendedor_ambulante(data3)
@@ -276,4 +276,6 @@ def dist(lat1, lng1, lat2, lng2):
     from geopy.distance import vincenty
     init = (lat1, lng1)
     out = (lat2, lng2)
+    print(init)
+    print(out)
     return vincenty(init, out).meters

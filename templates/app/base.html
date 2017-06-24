@@ -21,7 +21,8 @@
     <!--<script src="http://materializecss.com/templates/starter-template/js/init.js"></script>-->
 
     <!-- Ramda for functional programming patterns -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.24.1/ramda.min.js" integrity="sha256-yF1J6hzNIWN398K1d+n1XXGC3JEchH55G05dxM+rsFk=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.24.1/ramda.min.js"
+            integrity="sha256-yF1J6hzNIWN398K1d+n1XXGC3JEchH55G05dxM+rsFk=" crossorigin="anonymous"></script>
 
     {% load static %}
     <script src="{% static "js/cookies.js" %}"></script>
@@ -40,12 +41,12 @@
     </script>
     <script>
         {% if user.tipo >= 1 %}
-            let global_lat = 0;
-            let global_lng = 0;
+            window.global_lat = 0;
+            window.global_lng = 0;
 
             function geo(pos) {
-                global_lat = pos.coords.latitude;
-                global_lng = pos.coords.longitude
+                window.global_lat = pos.coords.latitude;
+                window.global_lng = pos.coords.longitude
             }
             $(document).ready(function () {
                 if (navigator.geolocation) {
@@ -68,8 +69,8 @@
                     url: '/ajax/alerta/',
                     dataType: 'json',
                     data: {
-                        lat: global_lat,
-                        lng: global_lng,
+                        lat: window.global_lat,
+                        lng: window.global_lng,
                     }
                 })
             }
@@ -209,6 +210,10 @@
                                         type: 'POST',
                                         url: '/ajax/check_in/',
                                         dataType: 'json',
+                                        data:{
+                                            lat: window.global_lat,
+                                            lng: window.global_lng
+                                        },
                                         success: function () {
                                             location.reload();
                                         },
@@ -234,6 +239,10 @@
                     {% endif %}
                 {% endif %}
                 {% block filters %} {% endblock %}
+                {% if user.tipo >= 1 %}
+                    <li><a href="#modal0"><i class="material-icons">warning</i>Enviar Alerta</a></li>
+                {% endif %}
+
             </ul>
         </div>
     </header>
