@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'style.css' %}">
 
@@ -24,11 +25,121 @@
 
     {% load static %}
     <script src="{% static "js/cookies.js" %}"></script>
-
+    <script src="https://js.pusher.com/4.0/pusher.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <link rel="manifest" href="{% static 'js/manifest.json' %}">
     <script>
-        $(function () {
+        $(document).ready(function () {
+            // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
             $('.button-collapse').sideNav();
+            $('.modal').modal();
+
         });
+
+    </script>
+    <script>
+        {% if user.tipo >= 1 %}
+            let global_lat = 0;
+            let global_lng = 0;
+
+            function geo(pos) {
+                global_lat = pos.coords.latitude;
+                global_lng = pos.coords.longitude
+            }
+            $(document).ready(function () {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(geo);
+                }
+                else {
+                    alert("Tu dispositivo no tiene GPS activado");
+                }
+            });
+            $(function () {
+                $('.button-collapse').sideNav();
+            });
+            $ajaxSetup();
+            function getLocation() {
+                showPosition()
+            }
+            function showPosition() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/ajax/alerta/',
+                    dataType: 'json',
+                    data: {
+                        lat: global_lat,
+                        lng: global_lng,
+                    }
+                })
+            }
+
+
+            {% if user.tipo == 3 %}
+                toastr.options.closeDuration = 1000;
+                toastr.options.fadeOut = 5000;
+
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('{% static 'js/firebase-messaging-sw.js' %}', {scope: '/static/js/'})
+                        .then((registration) => {
+                            console.log('Registration succeeded. Scope is ' + registration.scope);
+                            var config = {
+                                apiKey: "AIzaSyCeslgWEPN0XIpsbO1AJ1HyORXqhRciOFA",
+                                authDomain: "beau-chef.firebaseapp.com",
+                                databaseURL: "https://beau-chef.firebaseio.com",
+                                projectId: "beau-chef",
+                                storageBucket: "beau-chef.appspot.com",
+                                messagingSenderId: "746470197160"
+                            };
+                            firebase.initializeApp(config);
+                            const messaging = firebase.messaging();
+                            messaging.useServiceWorker(registration);
+                            messaging.requestPermission()
+                                .then(function () {
+                                    console.log('Notification permission granted.');
+                                    if (!sessionStorage.token) {
+                                        getTokenAndSend();
+                                    }
+
+                                })
+                                .catch(function (err) {
+                                    console.log('Unable to get permission to notify.', err);
+                                });
+
+                            function getTokenAndSend() {
+                                messaging.getToken()
+                                    .then(function (currentToken) {
+                                        if (currentToken) {
+                                            sessionStorage.token = currentToken;
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/ajax/token/',
+                                                dataType: 'json',
+                                                data: {
+                                                    token: currentToken,
+                                                }
+                                            })
+                                        } else {
+                                            console.log('No Instance ID token available. Request permission to generate one.');
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        console.log('An error occurred while retrieving token. ', err);
+                                    });
+                            }
+
+                            messaging.onMessage(function (payload) {
+                                console.log("Message received. ", payload);
+                                toastr.warning(payload.notification.body, {timeOut: 10000});
+                                navigator.vibrate([2000, 2000, 2000]);
+                            });
+                        }).catch(function (error) {
+                        // registration failed
+                        console.log('Registration failed with ' + error);
+                    });
+                }
+            {% endif %}
+        {% endif %}
     </script>
 
 
@@ -52,8 +163,8 @@
             <ul style="margin-top: 0">
                 <div class="userView">
                     {% if user.user.is_authenticated %}
-                    <a href="{% url 'edit_account' %}"><i class="material-icons right grey-text text-lighten-2"
-                       style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0 0 !important;">settings</i></a>
+                        <a href="{% url 'edit_account' %}"><i class="material-icons right grey-text text-lighten-2"
+                                                              style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0 0 !important;">settings</i></a>
                     {% endif %}
                     <div class="background" style="height:175px;">
                         <img src="{% static "img/background4.png" %}">
@@ -63,7 +174,7 @@
                                          src="{% static 'img/AvatarPenguin.png' %}"></a>
                     {% else %}
                         <a href="#"><img style="margin-top: 16%;" class="circle"
-                                         src="/media/{{ user.avatar }}"></a>
+                                         src="{{ user.imagen }}"></a>
                     {% endif %}
 
                     <a href="#"><span style="margin-left: 5%;"
@@ -92,7 +203,7 @@
                         <li><a class="subheader">Activo</a></li>
                         <li>
                             <script>
-                                $ajaxSetup();
+                                //$ajaxSetup();
                                 function check_in() {
                                     $.ajax({
                                         type: 'POST',
@@ -128,6 +239,19 @@
     </header>
 
     <main>
+        {% if user.tipo >= 1 %}
+            <div id="modal0" class="modal">
+                <div class="modal-content">
+                    <h4>¿ Esta Seguro que quiere lanzar una alerta?</h4>
+
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat"
+                       onclick="getLocation()">Aceptar</a>
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat">Cancelar</a>
+                </div>
+            </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </main>

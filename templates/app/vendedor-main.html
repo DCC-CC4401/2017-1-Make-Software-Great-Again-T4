@@ -1,14 +1,6 @@
 {% extends 'app/base.html' %}
 {% load static %}
 {% block content %}
-
-    <script>
-        $(document).ready(function () {
-            $('.modal').modal();
-        });
-
-    </script>
-
     <div class="row">
         <div class="col s12 m8">
             <div id="profile-page-header" class="card">
@@ -17,13 +9,13 @@
                 </div>
                 <div class="row hide-on-small-and-down">
                     <a class="card-profile-image-large">
-                        <img style="margin-top: 20%;" src="/media/{{ user.avatar }}" alt="profile image"
+                        <img style="margin-top: 20%;" src="{{ vendor.usuario.imagen }}" alt="profile image"
                              class="circle z-depth-2 responsive-img activator">
                     </a>
                 </div>
                 <div class="row show-on-small hide-on-med-and-up">
                     <a class="card-profile-image-small">
-                        <img src="/media/{{ user.avatar }}" alt="profile image"
+                        <img src="{{ vendor.usuario.imagen }}" alt="profile image"
                              class="circle z-depth-2 responsive-img activator">
                     </a>
                 </div>
@@ -33,9 +25,9 @@
                             <h4 class="card-title grey-text flow-text text-darken-4 center-align">{{ user.user.first_name }} &ensp;{{ user.user.last_name }}</h4>
                             <p class="medium-small flow-text grey-text center-align">{{ vendor.tipo }}</p>
                             {% if user.tipo == 2 %}
-                            <p class="flow-text text-darken-4 center-align" style="font-size: 0.88rem;">
-                                Horario: <a class="light-green-text center-align">{{ schedule }}</a>
-                            </p>
+                                <p class="flow-text text-darken-4 center-align" style="font-size: 0.88rem;">
+                                    Horario: <a class="light-green-text center-align">{{ schedule }}</a>
+                                </p>
                             {% endif %}
                         </div>
                         <div class="col l2 center-align">
@@ -51,10 +43,10 @@
                             <div class="switch" style="margin-left: 10px;">
                                 <label>
                                     <h4 class="card-title grey-text flow-text text-darken-4">Favorito</h4>
-                                        <h6><i class="material-icons amber-text">grade</i>
-                                            <span class=" grey-text flow-text text-darken-4"
-                                                  style="font-size:24px; line-height:35px;">{{ vendor.numero_favoritos }}</span>
-                                        </h6>
+                                    <h6><i class="material-icons amber-text">grade</i>
+                                        <span class=" grey-text flow-text text-darken-4"
+                                              style="font-size:24px; line-height:35px;">{{ vendor.numero_favoritos }}</span>
+                                    </h6>
                                 </label>
                             </div>
                         </div>
@@ -75,8 +67,9 @@
                                 <p class="card-title grey-text flow-text text-darken-4" style="font-size: 1.3rem;">
                                     Favorito</p>
                                 <h6><i class="material-icons amber-text" id="star1">grade</i>
-                                        <span class=" grey-text flow-text text-darken-4"
-                                              style="font-size:22px; line-height:25px;" id="like1">{{ vendor.numero_favoritos }}</span>
+                                    <span class=" grey-text flow-text text-darken-4"
+                                          style="font-size:22px; line-height:25px;"
+                                          id="like1">{{ vendor.numero_favoritos }}</span>
                                 </h6>
                             </label>
                         </div>
@@ -128,7 +121,8 @@
                 <span class="card-title grey-text text-darken-4">{{ product.nombre }}
                     <i class="material-icons right">close</i></span>
                                     <ul>
-                                        <li>Precio: <a class="green-text light-green-text">${{ product.precio }}</a></li>
+                                        <li>Precio: <a class="green-text light-green-text">${{ product.precio }}</a>
+                                        </li>
                                         <li>Categoria: {{ product.category2str }}</li>
                                         <li>Stock: {{ product.stock }}</li>
                                         <li>Descripción: {{ product.descripcion }}
@@ -136,7 +130,8 @@
                                                 <p class="left-align col m6"><a class="waves-effect waves-light"
                                                                                 href="{% url 'edit_products' pid=product.id %}">Editar</a>
                                                 <p class="right-align col m6"><a class="waves-effect waves-light"
-                                                                                 href="#modal{{ product.id }}">Ver imagen</a>
+                                                                                 href="#modal{{ product.id }}">Ver
+                                                    imagen</a>
                                                 </p>
                                             </div>
                                         </li>
@@ -152,9 +147,11 @@
         </div>
 
     </div>
-    <div class='row center'>
-        <a class='col l5 offset-l4 btn btn-large waves-effect button teal'
-           href="#">Agregar Item</a>
+    <div class='row center-btn'>
+        <div class="col s10 offset-s1 center-align">
+            <a class='btn btn-large waves-effect button teal'
+               href={% url 'add_product' %}>Agregar Item</a>
+        </div>
     </div>
 
 {% endblock %}

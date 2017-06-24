@@ -15,21 +15,6 @@ DIAS = [
 ]
 
 
-def actualizar_atributo(clase, atributo):
-    '''
-    Entrega la lista actualizada del atributo correspondiente.
-    :param clase: Class
-    :param atributo: String
-    :return: List[type:Class.atributo]
-    '''
-
-    atributos = clase.objects.all().order_by(atributo).values_list(atributo, flat=True)
-    list = []
-    for atr in atributos:
-        list.append((atr, atr))
-    return list
-
-
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=100, required=True)
     password = forms.CharField(widget=forms.PasswordInput(), required=True)
@@ -43,13 +28,15 @@ class EditarCuenta(forms.Form):
     last_name = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(required=False)
     avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'dropify'}))
-    elecciones = []
-    formas_pago = forms.MultipleChoiceField(required=False, choices=elecciones,
+    choices = []
+    formas_pago = forms.MultipleChoiceField(required=False, choices=choices,
                                             widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
     # dias_ini = forms.ChoiceField(choices=DIAS, required=False)
     # dias_fin = forms.ChoiceField(choices=DIAS, required=False)
     hora_ini = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     hora_fin = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
+    lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
+    lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
 
 
 # Hereda los atributos del vendedor
@@ -62,13 +49,15 @@ class SignUpForm(EditarCuenta):
                              choices=elecciones_tipo, required=False)
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
+    lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
+    lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
 
 
 class AgregarProductoForm(forms.Form):
     nombre = forms.CharField(max_length=200, required=True)
-    elecciones = []
-    categorias = forms.MultipleChoiceField(choices=elecciones,
-                                           widget=forms.SelectMultiple(attrs={'class': 'multiple'}), required=False)
+    choices = []
+    categorias = forms.MultipleChoiceField(required=False, choices=choices,
+                                           widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
     descripcion = forms.CharField(required=False, max_length=500,
                                   widget=forms.Textarea(attrs={'class': 'materialize-textarea'}))
     stock = forms.IntegerField(required=False)

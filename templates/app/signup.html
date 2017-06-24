@@ -1,0 +1,202 @@
+{% extends 'app/base.html' %}
+{% block content %}
+
+    <script>
+        $(document).ready(function () {
+            $('select').material_select();
+            $('#map2').css('height', '20em')
+        });
+
+        $(function () {
+            $('#id_tipo').on('change', function () {
+                let selected = $('#id_tipo').find('option:selected').val();
+                //$('#hours').css('visibility', 'visible');
+                //$('#vendor_info').css('visibility', 'visible');
+                //$('#hours').slideUp()
+                if (selected == "0") {
+                    $('#hours').slideUp();
+                    $('#vendor_info').slideUp();
+                }
+                if (selected == "2") {
+                    $('#hours').slideDown();
+                    $('#vendor_info').slideDown();
+                    initMap()
+                }
+                if (selected == "3") {
+                    $('#hours').slideUp();
+                    $('#vendor_info').slideDown();
+                }
+                if (selected == "1") {
+                    $('#hours').slideUp();
+                    $('#vendor_info').slideUp();
+                }
+            });
+        });
+
+
+    </script>
+    <div style="padding-top: 2em"></div>
+    <h5 class="teal-text" style="text-align: center;">¡Regístrate!</h5>
+    <div class="container">
+        <div class="z-depth-1 grey lighten-4 row"
+             style="margin : 5%; padding: 1.6em;">
+
+            <form class="col s12 m12" method="post"
+                  enctype=multipart/form-data>{% csrf_token %}
+                <div class='row'>
+                    <div class='col s12 m12'>
+                    </div>
+                </div>
+
+                <div class="input-field col s12 m12">
+                    {{ form.tipo }}
+                    <label>Tipo de Usuario</label>
+                </div>
+
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.username }}
+                        <label style="text-align: center" for='username'>Ingresa tu nombre de Usuario</label>
+                    </div>
+                </div>
+
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.first_name }}
+                        <label style="text-align: center" for='nombre'>Ingresa tu nombre</label>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.last_name }}
+                        <label style="text-align: center" for='nombre'>Ingresa tu apellido</label>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.email }}
+                        <label style="text-align: center" for='email'>Ingresa tu e-mail</label>
+                    </div>
+                </div>
+
+                <div class="row" id="hours" hidden>
+                    <div class="col s12">
+                        <div class="row">
+                            <div class="input-field col s6">
+                                <i class="material-icons prefix">alarm</i>
+                                {{ form.hora_ini }}
+                                <!--<label for="icon_prefix">Hora inicial</label>-->
+                            </div>
+                            <div class="input-field col s6">
+                                <i class="material-icons prefix">alarm</i>
+                                {{ form.hora_fin }}
+                                <!--<label for="icon_telephone">Hora final</label>-->
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="row">
+                            <div id="map2"></div>
+                            <div class="input-field col s6 hide" >
+                                {{ form.lat }}
+                            </div>
+                            <div class="input-field col s6 hide">
+                                {{ form.lng }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div>
+                    Insertar foto:
+                </div>
+                <div>
+                    {{ form.avatar }}
+
+                </div>
+
+                <div id="vendor_info" hidden>
+                    <div class='row'>
+                        <div class='input-field col s12 m12'>
+                            Seleccione sus formas de pago:
+                            {{ form.formas_pago }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.password }}
+                        <label style="text-align: center" for='password'>Ingresa tu contraseña</label>
+                    </div>
+                </div>
+
+
+                <div class='row'>
+                    <div class='input-field col s12 m12'>
+                        {{ form.repassword }}
+                        <label style="text-align: center" for='password2'>Repite tu contraseña</label>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col s12'>
+                        <a class='red-text text-accent-2'><b>{{ message }}</b></a>
+
+                    </div>
+                </div>
+
+                <div class='row'>
+                    <button id="button_s" type='submit' name='btn_login' class='col l6 offset-l3 btn btn-large waves-effect teal'>
+                        Registrarse
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <div style="text-align: center;"><a class="grey-text"> ¿Ya tienes una cuenta? </a><a
+            href="{% url 'login' %}">Inicia sesión</a></div>
+
+    <div style="padding-top: 4em"></div>
+
+    <script>
+        let marker = null;
+        function initMap() {
+            let beau850 = {lat: -33.457785, lng: -70.663808};
+            let map = new google.maps.Map(document.getElementById('map2'), {
+                zoom: 17,
+                center: beau850
+            });
+            map.addListener('click', function (e) {
+                placeMarker(e.latLng, map);
+            });
+        }
+        function placeMarker(latLng, map) {
+            if (marker === null) {
+                marker = new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    id: 'unique-marker'
+                });
+                $('#id_lat').val(latLng['lat']().toPrecision(7));
+                $('#id_lng').val(latLng['lng']().toPrecision(7));
+
+            }
+            else {
+                marker.setPosition(latLng);
+                //console.log(latLng['lat']().toPrecision(7));
+                $('#id_lat').val(latLng['lat']().toPrecision(7));
+                $('#id_lng').val(latLng['lng']().toPrecision(7));
+            }
+        }
+
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFZg-UjSTaZ7H_mRYH6bSdoCacLTsppQU&callback=initMap">
+    </script>
+
+{% endblock %}

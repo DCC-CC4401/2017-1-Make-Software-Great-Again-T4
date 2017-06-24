@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
@@ -48,7 +47,13 @@ class Usuario(models.Model):
     avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
-        return self.user.first_name
+        return self.user.username
+
+    def imagen(self):
+        try:
+            return '/'+str(self.avatar.url)
+        except:
+            return '/static/img/' + 'AvatarVendedor3.png'
 
     class Meta:
         db_table = 'usuario'
@@ -58,9 +63,10 @@ class Vendedor(PolymorphicModel):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
-    lat = models.DecimalField(max_digits=10, decimal_places=6)
-    lng = models.DecimalField(max_digits=10, decimal_places=6)
-    numero_favoritos = models.PositiveIntegerField()
+
+    lat = models.DecimalField(default=0, max_digits=10, decimal_places=7)
+    lng = models.DecimalField(default=0, max_digits=10, decimal_places=7)
+    numero_favoritos = models.PositiveIntegerField(default=0, editable=False)
 
     def payment_str(self):
         temp = []
@@ -98,12 +104,9 @@ class Vendedor(PolymorphicModel):
 
 
 # Hereda de Vendedor, se añaden horarios.
-# Horario: De dia_ini a dia_fin entre hora_ini y hora_fin.
 class VendedorFijo(Vendedor):
-    dia_ini = models.CharField(choices=DIAS, max_length=9)
-    dia_fin = models.CharField(choices=DIAS, max_length=9)
-    hora_ini = models.TimeField()
-    hora_fin = models.TimeField()
+    hora_ini = models.TimeField(blank=True)
+    hora_fin = models.TimeField(blank=True)
 
     def schedule(self):
         return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
@@ -209,3 +212,14 @@ class Transacciones(models.Model):
 
     class Meta:
         db_table = 'transacciones'
+
+
+class Alerta(models.Model):
+    usuario = models.ForeignKey(Usuario)
+    posX = models.FloatField()
+    posY = models.FloatField()
+
+
+class Token(models.Model):
+    vendedor = models.ForeignKey(Vendedor)
+    token = models.CharField(max_length=1024)
