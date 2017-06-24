@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.db import models
 
+from polymorphic.models import PolymorphicModel
+
 DIAS = [
     (1, 'Lunes'),
     (2, 'Martes'),
@@ -57,10 +59,11 @@ class Usuario(models.Model):
         db_table = 'usuario'
 
 
-class Vendedor(models.Model):
+class Vendedor(PolymorphicModel):
     usuario = models.OneToOneField(Usuario)
     activo = models.BooleanField(default=False, blank=True)
     formas_pago = models.ManyToManyField(FormasDePago)
+
     lat = models.DecimalField(default=0, max_digits=10, decimal_places=7)
     lng = models.DecimalField(default=0, max_digits=10, decimal_places=7)
     numero_favoritos = models.PositiveIntegerField(default=0, editable=False)
@@ -77,6 +80,28 @@ class Vendedor(models.Model):
     def tipo(self):
         return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
 
+    def serialize(self):
+        products = Producto.objects.filter(vendedor=self)
+        return {
+            'position': {'lat': float(self.lat), 'lng': float(self.lng)},
+            'state': 'A' if self.activo else 'I',
+            'payment': ', '.join(map(lambda pay: pay.metodo, self.formas_pago.all())),
+            'id': self.id,
+            'name': self.name(),
+            'avatar': self.avatar(),
+            'products': [product.serialize() for product in products]
+        }
+
+    def name(self):
+        user = self.usuario.user
+        return "{} {}".format(user.first_name, user.last_name)
+
+    def avatar(self):
+        try:
+            return '/' + self.usuario.avatar.url
+        except ValueError:
+            return None
+
 
 # Hereda de Vendedor, se añaden horarios.
 class VendedorFijo(Vendedor):
@@ -85,6 +110,12 @@ class VendedorFijo(Vendedor):
 
     def schedule(self):
         return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
+
+    def serialize(self):
+        return {**super().serialize(), **{
+            'horaIni': self.hora_ini,
+            'horaFin': self.hora_fin
+        }}
 
 
 # Mismos atributos de Vendedor
@@ -128,6 +159,13 @@ class Producto(models.Model):
         for i in self.categorias.values():
             temp.append(i['nombre'])
         return ' '.join(temp)
+
+    def serialize(self):
+        return {
+            'categories': [category.nombre
+                           for category in self.categorias.all()],
+            'stock': self.stock
+        }
 
     class Meta:
         db_table = 'producto'

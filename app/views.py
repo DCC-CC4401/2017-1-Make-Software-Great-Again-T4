@@ -7,6 +7,7 @@ import pusher
 
 from django.contrib import auth
 from django.contrib.auth import authenticate
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Case, IntegerField, F, Sum, When
 from django.http import HttpResponseRedirect, JsonResponse
@@ -29,9 +30,11 @@ push_service = FCMNotification(api_key="AIzaSyCKN7gqnUnHEFSPcKpe7YdiXuDJJliObFM"
 def index(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('home'))
-    return render(request, 'app/index.html')
-
-
+    return render(request, 'app/index.html', {
+        'categories': Categoria.objects.all()
+    })
+  
+  
 class Login(View):
     @staticmethod
     def get(request):
@@ -60,7 +63,10 @@ def home(request):
         return HttpResponseRedirect(reverse('login'))
     user = Usuario.objects.get(user=request.user)
     if user.tipo == 1:
-        return render(request, 'app/home.html', {'user': user})
+        return render(request, 'app/home.html', {
+            'user': user,
+            'categories': Categoria.objects.all()
+        })
     vendor = Vendedor.objects.get(usuario=user)
     update(vendor)
     products = []
@@ -398,7 +404,27 @@ def delete_account(request):
     user.delete()
     return JsonResponse({'success': True})
 
+class ActiveVendors(View):
+    @staticmethod
+    def post(request):
+        def get_favorites():
+            try:
+                user = Usuario.objects.get(user=request.user)
+                return Alumno.objects.get(usuario=user).favorites.all()
+            except:
+                return []
 
+        def has_stock(vendor):
+            return Producto.objects.filter(vendedor=vendor, stock__gt=0).exists()
+
+        active = Vendedor.objects.filter(activo=True)
+        favorites = set(get_favorites())
+
+        return JsonResponse([{**vendor.serialize(), **{
+           'fav': vendor in favorites
+        }} for vendor in active if has_stock(vendor)], safe=False)
+      
+   
 def adm_stock(request):
     user = Usuario.objects.get(user=request.user)
     pid = request.POST.get('id')
@@ -477,3 +503,4 @@ def token(request):
     tok = Token(vendedor=Vendedor.objects.get(usuario=user), token=request.POST['token'])
     tok.save()
     return JsonResponse({})
+
