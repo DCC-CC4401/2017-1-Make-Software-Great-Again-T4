@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.db import models
-
 from polymorphic.models import PolymorphicModel
 
 DIAS = [
@@ -51,7 +50,7 @@ class Usuario(models.Model):
 
     def imagen(self):
         try:
-            return '/'+str(self.avatar.url)
+            return '/' + str(self.avatar.url)
         except:
             return '/static/img/' + 'AvatarVendedor3.png'
 
@@ -193,15 +192,6 @@ Inicializar con:
         (16, 'Vegetariano'),
     )
 '''
-
-
-class Favoritos(models.Model):
-    alumno = models.ForeignKey(Alumno)
-    vendedor = models.ForeignKey(Vendedor)
-    fecha = models.DateField()
-
-    class Meta:
-        db_table = 'favoritos'
 
 
 class Transacciones(models.Model):

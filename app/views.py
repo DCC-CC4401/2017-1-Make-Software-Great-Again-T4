@@ -418,7 +418,8 @@ class ActiveVendors(View):
 
         def has_stock(vendor):
             return Producto.objects.filter(vendedor=vendor, stock__gt=0).exists()
-
+        for i in VendedorFijo.objects.all():
+            update(i)
         active = Vendedor.objects.filter(activo=True)
         favorites = set(get_favorites())
 
