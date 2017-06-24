@@ -221,4 +221,5 @@ class Alerta(models.Model):
 
 class Token(models.Model):
     vendedor = models.ForeignKey(Vendedor)
+    code = models.CharField(max_length=150)
     token = models.CharField(max_length=1024)

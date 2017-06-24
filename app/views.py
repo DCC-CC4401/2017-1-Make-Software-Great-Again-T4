@@ -418,6 +418,7 @@ class ActiveVendors(View):
 
         def has_stock(vendor):
             return Producto.objects.filter(vendedor=vendor, stock__gt=0).exists()
+
         for i in VendedorFijo.objects.all():
             update(i)
         active = Vendedor.objects.filter(activo=True)
@@ -492,6 +493,7 @@ def alerta(request):
                 lambda x: dist(x.vendedor.lat, x.vendedor.lng, request.POST["lat"], request.POST["lng"]) <= 50,
                 tokens))
             registration_ids = [i.token for i in filtered_tokens]
+            print(registration_ids)
             message_title = "Beau-Chef"
             message_body = "Vienen los Carabineros"
             push_service.notify_multiple_devices(registration_ids=registration_ids,
@@ -503,6 +505,15 @@ def alerta(request):
 
 def token(request):
     user = Usuario.objects.get(user=request.user)
-    tok = Token(vendedor=Vendedor.objects.get(usuario=user), token=request.POST['token'])
-    tok.save()
+    vendor = Vendedor.objects.get(usuario=user)
+    tokens = Token.objects.filter(vendedor=vendor)
+    code = request.POST.get('id', '')
+    tokens_code = tokens.filter(code=code)
+    if len(tokens_code) == 0:  # dispositivo nuevo
+        tok = Token(vendedor=vendor, token=request.POST.get('token', ''), code=code)
+        tok.save()
+    else:  # dispositivo ya registrado
+        tok = tokens_code.first()
+        tok.token = request.POST.get('token', '')
+        tok.save()
     return JsonResponse({})

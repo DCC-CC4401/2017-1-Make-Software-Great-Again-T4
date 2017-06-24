@@ -77,6 +77,14 @@
 
 
             {% if user.tipo == 3 %}
+                function randomCode() {
+                    let hash = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012346789";
+                    let random8 = '';
+                    for (let i = 0; i < 128; i++) {
+                        random8 += hash[parseInt(Math.random() * hash.length)];
+                    }
+                    return random8;
+                }
                 toastr.options.closeDuration = 1000;
                 toastr.options.fadeOut = 5000;
 
@@ -84,7 +92,7 @@
                     navigator.serviceWorker.register('{% static 'js/firebase-messaging-sw.js' %}', {scope: '/static/js/'})
                         .then((registration) => {
                             console.log('Registration succeeded. Scope is ' + registration.scope);
-                            var config = {
+                            const config = {
                                 apiKey: "AIzaSyCeslgWEPN0XIpsbO1AJ1HyORXqhRciOFA",
                                 authDomain: "beau-chef.firebaseapp.com",
                                 databaseURL: "https://beau-chef.firebaseio.com",
@@ -98,9 +106,10 @@
                             messaging.requestPermission()
                                 .then(function () {
                                     console.log('Notification permission granted.');
-                                    if (!sessionStorage.token) {
-                                        getTokenAndSend();
+                                    if (!localStorage.id) {
+                                        localStorage.id = randomCode();
                                     }
+                                    getTokenAndSend();
 
                                 })
                                 .catch(function (err) {
@@ -110,13 +119,14 @@
                             function getTokenAndSend() {
                                 messaging.getToken()
                                     .then(function (currentToken) {
+                                        console.log(currentToken);
                                         if (currentToken) {
-                                            sessionStorage.token = currentToken;
                                             $.ajax({
                                                 type: 'POST',
                                                 url: '/ajax/token/',
                                                 dataType: 'json',
                                                 data: {
+                                                    id: localStorage.id,
                                                     token: currentToken,
                                                 }
                                             })
@@ -210,7 +220,7 @@
                                         type: 'POST',
                                         url: '/ajax/check_in/',
                                         dataType: 'json',
-                                        data:{
+                                        data: {
                                             lat: window.global_lat,
                                             lng: window.global_lng
                                         },
