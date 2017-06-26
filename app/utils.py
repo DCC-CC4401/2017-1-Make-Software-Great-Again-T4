@@ -175,8 +175,8 @@ def test():
         'fav': 42,
         'lat': -33.457885,
         'lng': -70.663808,
-        'hora_ini': datetime.time(hour=12, minute=0),
-        'hora_fin': datetime.time(hour=13, minute=0)
+        'start_hour': datetime.time(hour=12, minute=0),
+        'end_hour': datetime.time(hour=13, minute=0)
     }
     add_settled_vendor(data1)
 
@@ -195,7 +195,7 @@ def test():
         Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username=data1['username']))))
     buyer.save()
     p = Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor1')))
-    p.numero_favoritos = +1
+    p.favorites_counter = +1
     p.save()
 
     data3 = {
@@ -216,31 +216,31 @@ def test():
     add_ambulant_vendor(data3)
 
     product_1 = {
-        'nombre': 'Pizza',
-        'imagen': None,
-        'icono': 'pizza',
-        'categorias': ['Almuerzos'],
-        'descripcion': 'Deliciosa pizza hecha con masa casera, viene disponible en 3 tipos:',
+        'name': 'Pizza',
+        'image': None,
+        'icon': 'pizza',
+        'categories': ['Almuerzos'],
+        'description': 'Deliciosa pizza hecha con masa casera, viene disponible en 3 tipos:',
         'stock': 20,
-        'precio': 1300
+        'price': 1300
     }
     product_2 = {
-        'nombre': 'Menú de arroz',
-        'imagen': None,
-        'icono': 'rice',
-        'categorias': ['Almuerzos'],
-        'descripcion': 'Almuerzo de arroz con pollo arvejado.',
+        'name': 'Menú de arroz',
+        'image': None,
+        'icon': 'rice',
+        'categories': ['Almuerzos'],
+        'description': 'Almuerzo de arroz con pollo arvejado.',
         'stock': 40,
-        'precio': 2500
+        'price': 2500
     }
     product_3 = {
-        'nombre': 'Jugo',
-        'imagen': None,
-        'icono': 'juice',
-        'categorias': ['Snack'],
-        'descripcion': 'Jugo en caja sabor durazno.',
+        'name': 'Jugo',
+        'image': None,
+        'icon': 'juice',
+        'categories': ['Snack'],
+        'description': 'Jugo en caja sabor durazno.',
         'stock': 40,
-        'precio': 300
+        'price': 300
     }
 
     create_product(Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
