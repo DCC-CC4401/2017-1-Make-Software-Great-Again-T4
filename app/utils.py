@@ -103,7 +103,7 @@ def create_user(type, form):
         add_user(form.cleaned_data)
     if type == "2":
         print(form.cleaned_data)
-        if form.cleaned_data['init_hour'] is None:
+        if form.cleaned_data['start_hour'] is None:
             raise KeyError('Ingresa hora de inicio')
         if form.cleaned_data['end_hour'] is None:
             raise KeyError('Ingresa hora de termino')
