@@ -23,7 +23,7 @@ def add_user(data):
 def add_settled_vendor(data):
     add_user(data)
     user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
-    p = SettledVendor(usuario=user, init_hour=data['init_hour'], end_hour=data['end_hour'],
+    p = SettledVendor(user=user, start_hour=data['start_hour'], end_hour=data['end_hour'],
                       lat=data['lat'], lng=data['lng'])
     p.save()
     for i in data['payment_methods']:
@@ -36,7 +36,7 @@ def add_ambulant_vendor(data):
     add_user(data)
     user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
 
-    p = AmbulantVendor(usuario=user)
+    p = AmbulantVendor(user=user)
     p.save()
     for i in data['payment_methods']:
         p.payment_methods.add(PaymentMethod.objects.get(method=i))
@@ -73,13 +73,13 @@ def add_payment(pay):
 def add_buyer(data):
     add_user(data)
     user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
-    p = Student.objects.create(usuario=user)
+    p = Student.objects.create(user=user)
     p.save()
 
 
 def add_stat(data):
     user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
-    vendor = Vendor.objects.get(usuario=user)
+    vendor = Vendor.objects.get(user=user)
     products = Product.objects.filter(vendor=vendor).filter(name=data['product_name'])
     if products.count() != 0:
         product = Product.objects.filter(vendor=vendor).filter(name=data['product_name']).first()
@@ -169,8 +169,8 @@ def test():
         'first_name': 'Daniel',
         'last_name': 'Aguirre',
         'avatar': None,
-        'tipo': 2,
-        'formas_pago': ['efectivo', 'tarjeta'],
+        'type': 2,
+        'payment_methods': ['efectivo', 'tarjeta'],
         'state': True,
         'fav': 42,
         'lat': -33.457885,
@@ -187,14 +187,14 @@ def test():
         'first_name': 'Robinson',
         'last_name': 'Castro',
         'avatar': None,
-        'tipo': 1,
+        'type': 1,
     }
     add_buyer(data2)
-    buyer = Student.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username=data2['username'])))
+    buyer = Student.objects.get(user=BaseUser.objects.get(user=User.objects.get(username=data2['username'])))
     buyer.favorites.add(
-        Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username=data1['username']))))
+        Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username=data1['username']))))
     buyer.save()
-    p = Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1')))
+    p = Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor1')))
     p.numero_favoritos = +1
     p.save()
 
@@ -205,8 +205,8 @@ def test():
         'first_name': 'Andres',
         'last_name': 'Olivares',
         'avatar': None,
-        'tipo': 3,
-        'formas_pago': ['efectivo'],
+        'type': 3,
+        'payment_methods': ['efectivo'],
         'stack': True,
         'state': False,
         'fav': 42,
@@ -243,11 +243,11 @@ def test():
         'precio': 300
     }
 
-    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
+    create_product(Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
                    product_1)
-    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor2'))),
+    create_product(Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor2'))),
                    product_2)
-    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
+    create_product(Vendor.objects.get(user=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
                    product_3)
 
     stat1 = {
