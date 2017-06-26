@@ -11,7 +11,7 @@
     <script>
         $ajaxSetup();
 
-        function borrar_cuenta() {
+        function delete_account() {
             console.log('click');
             $.ajax({
                 type: "POST",
@@ -61,7 +61,7 @@
                     <div class='row'>
                         <div class='input-field col s12 m12'>
                             &ensp;Métodos de pago :
-                            {{ form.formas_pago }}
+                            {{ form.payment_methods }}
                         </div>
                     </div>
                 {% endif %}
@@ -70,13 +70,13 @@
                     <div class='row'>
                         <div class='input-field col s12 m12'>
                             &ensp;Hora de Inicio :
-                            {{ form.hora_ini }}
+                            {{ form.start_hour }}
                         </div>
                     </div>
                     <div class='row'>
                         <div class='input-field col s12 m12'>
                             &ensp;Hora de Termino :
-                            {{ form.hora_fin }}
+                            {{ form.end_hour }}
                         </div>
                     </div>
                     <div class="row">
@@ -130,7 +130,7 @@
                 </div>
                 <div class='row'>
                     <a class='col m4 btn btn-large waves-effect button red'
-                       onclick="borrar_cuenta()">Borrar Cuenta<i
+                       onclick="delete_account()">Borrar Cuenta<i
                             class="material-icons right">delete</i></a>
                     <a class='col m4 btn btn-large waves-effect button teal red'
                        href="{% url 'home' %}">Cancelar<i

@@ -5,59 +5,58 @@ import datetime
 from app.models import *
 
 
-def agregar_usuario_interno(data):
+def add_django_user(data):
     user = User.objects.create_user(username=data['username'], email=data['email'], password=data['password'])
     user.first_name = data['first_name']
     user.last_name = data['last_name']
     user.save()
 
 
-def agregar_usuario(data):
-    agregar_usuario_interno(data)
+def add_user(data):
+    add_django_user(data)
     user = User.objects.get(username=data['username'])
-    p = Usuario(user=user, avatar=data['avatar'], tipo=data['tipo'])
+    p = BaseUser(user=user, avatar=data['avatar'], type=data['type'])
     p.save()
-    print("Usuario guardado")
+    print("User saved")
 
 
-def agregar_vendedor_fijo(data):
-    print(data)
-    agregar_usuario(data)
-    user = Usuario.objects.get(user=User.objects.get(username=data['username']))
-    p = VendedorFijo(usuario=user, hora_ini=data['hora_ini'], hora_fin=data['hora_fin'],
-                     lat=data['lat'], lng=data['lng'])
+def add_settled_vendor(data):
+    add_user(data)
+    user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
+    p = SettledVendor(usuario=user, init_hour=data['init_hour'], end_hour=data['end_hour'],
+                      lat=data['lat'], lng=data['lng'])
     p.save()
-    for i in data['formas_pago']:
-        p.formas_pago.add(FormasDePago.objects.get(metodo=i))
+    for i in data['payment_methods']:
+        p.payment_methods.add(PaymentMethod.objects.get(method=i))
     p.save()
-    print("Vendedor fijo guardado")
+    print("Settled vendor saved")
 
 
-def agregar_vendedor_ambulante(data):
-    agregar_usuario(data)
-    user = Usuario.objects.get(user=User.objects.get(username=data['username']))
+def add_ambulant_vendor(data):
+    add_user(data)
+    user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
 
-    p = VendedorAmbulante(usuario=user)
+    p = AmbulantVendor(usuario=user)
     p.save()
-    for i in data['formas_pago']:
-        p.formas_pago.add(FormasDePago.objects.get(metodo=i))
+    for i in data['payment_methods']:
+        p.payment_methods.add(PaymentMethod.objects.get(method=i))
     p.save()
-    print("Vendedor ambulante guardado")
+    print("Ambulant vendor saved")
 
 
-def crear_producto(vendedor, data):
-    icono = ProductIcon.objects.get(name=data['icono'])
-    p = Producto(vendedor=vendedor, nombre=data['nombre'], imagen=data['imagen'], icono=icono,
-                 descripcion=data['descripcion'], stock=data['stock'], precio=data['precio'])
+def create_product(vendedor, data):
+    icon = ProductIcon.objects.get(name=data['icon'])
+    p = Product(vendor=vendor, name=data['name'], image=data['image'], icon=icon,
+                description=data['description'], stock=data['stock'], price=data['price'])
     p.save()
-    for i in data['categorias']:
-        p.categorias.add(Categoria.objects.get(nombre=i))
+    for i in data['categories']:
+        p.categories.add(Category.objects.get(name=i))
     p.save()
-    print("Producto guardado")
+    print("Product saved")
 
 
 def add_category(cat):
-    p = Categoria(nombre=cat)
+    p = Category(nombre=cat)
     p.save()
 
 
@@ -67,25 +66,61 @@ def add_product_icon(data):
 
 
 def add_payment(pay):
-    p = FormasDePago(metodo=pay)
+    p = PaymentMethod(method=pay)
     p.save()
 
 
 def add_buyer(data):
-    agregar_usuario(data)
-    user = Usuario.objects.get(user=User.objects.get(username=data['username']))
-    p = Alumno.objects.create(usuario=user)
+    add_user(data)
+    user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
+    p = Student.objects.create(usuario=user)
     p.save()
 
 
 def add_stat(data):
-    user = Usuario.objects.get(user=User.objects.get(username=data['username']))
-    vendor = Vendedor.objects.get(usuario=user)
-    products = Producto.objects.filter(vendedor=vendor).filter(nombre=data['product_name'])
+    user = BaseUser.objects.get(user=User.objects.get(username=data['username']))
+    vendor = Vendor.objects.get(usuario=user)
+    products = Product.objects.filter(vendor=vendor).filter(name=data['product_name'])
     if products.count() != 0:
-        product = Producto.objects.filter(vendedor=vendor).filter(nombre=data['product_name']).first()
-        p = Transacciones.objects.create(vendedor=vendor, fecha=data['date'], cantidad=data['amount'], producto=product)
+        product = Product.objects.filter(vendor=vendor).filter(name=data['product_name']).first()
+        p = Transactions.objects.create(vendor=vendor, date=data['date'],  amount=data['amount'], product=product)
         p.save()
+
+
+
+def password_confirmed(data):
+    return data['password'] != data['repassword']
+
+
+def create_user(type, form):
+    """
+    Envia a los datos a la funcion de crear usuario correspondiente.
+    :param type: String (Numero entre 1 - 3)
+    :param form: instancia de clase SignUpForm
+    :return:
+    """
+    if type == "1":
+        add_user(form.cleaned_data)
+    if type == "2":
+        print(form.cleaned_data)
+        if form.cleaned_data['init_hour'] is None:
+            raise KeyError('Ingresa hora de inicio')
+        if form.cleaned_data['end_hour'] is None:
+            raise KeyError('Ingresa hora de termino')
+        if form.cleaned_data['lat'] is None or form.cleaned_data['lng'] is None:
+            raise KeyError('Ingresa posición en el mapa')
+        add_settled_vendor(form.cleaned_data)
+    if type == "3":
+        add_ambulant_vendor(form.cleaned_data)
+
+
+def dist(lat1, lng1, lat2, lng2):
+    from geopy.distance import vincenty
+    init = (lat1, lng1)
+    out = (lat2, lng2)
+    print(init)
+    print(out)
+    return vincenty(init, out).meters
 
 
 def add_icons():
@@ -143,7 +178,7 @@ def test():
         'hora_ini': datetime.time(hour=12, minute=0),
         'hora_fin': datetime.time(hour=13, minute=0)
     }
-    agregar_vendedor_fijo(data1)
+    add_settled_vendor(data1)
 
     data2 = {
         'username': 'buyer',
@@ -155,11 +190,11 @@ def test():
         'tipo': 1,
     }
     add_buyer(data2)
-    buyer = Alumno.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username=data2['username'])))
+    buyer = Student.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username=data2['username'])))
     buyer.favorites.add(
-        Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username=data1['username']))))
+        Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username=data1['username']))))
     buyer.save()
-    p = Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username='vendor1')))
+    p = Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1')))
     p.numero_favoritos = +1
     p.save()
 
@@ -178,7 +213,7 @@ def test():
         'lat': -33.458085,
         'lng': -70.663808,
     }
-    agregar_vendedor_ambulante(data3)
+    add_ambulant_vendor(data3)
 
     product_1 = {
         'nombre': 'Pizza',
@@ -208,11 +243,11 @@ def test():
         'precio': 300
     }
 
-    crear_producto(Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username='vendor1'))),
+    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
                    product_1)
-    crear_producto(Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username='vendor2'))),
+    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor2'))),
                    product_2)
-    crear_producto(Vendedor.objects.get(usuario=Usuario.objects.get(user=User.objects.get(username='vendor1'))),
+    create_product(Vendor.objects.get(usuario=BaseUser.objects.get(user=User.objects.get(username='vendor1'))),
                    product_3)
 
     stat1 = {
@@ -244,38 +279,3 @@ def test():
     add_stat(stat2)
     add_stat(stat3)
     add_stat(stat4)
-
-
-def clave_confirmada(data):
-    return data['password'] != data['repassword']
-
-
-def crear_usuario(tipo, form):
-    """
-    Envia a los datos a la funcion de crear usuario correspondiente.
-    :param tipo: String (Numero entre 1 - 3)
-    :param form: instancia de clase SignUpForm
-    :return:
-    """
-    if tipo == "1":
-        agregar_usuario(form.cleaned_data)
-    if tipo == "2":
-        print(form.cleaned_data)
-        if form.cleaned_data['hora_ini'] is None:
-            raise KeyError('Ingresa hora de inicio')
-        if form.cleaned_data['hora_fin'] is None:
-            raise KeyError('Ingresa hora de termino')
-        if form.cleaned_data['lat'] is None or form.cleaned_data['lng'] is None:
-            raise KeyError('Ingresa posición en el mapa')
-        agregar_vendedor_fijo(form.cleaned_data)
-    if tipo == "3":
-        agregar_vendedor_ambulante(form.cleaned_data)
-
-
-def dist(lat1, lng1, lat2, lng2):
-    from geopy.distance import vincenty
-    init = (lat1, lng1)
-    out = (lat2, lng2)
-    print(init)
-    print(out)
-    return vincenty(init, out).meters

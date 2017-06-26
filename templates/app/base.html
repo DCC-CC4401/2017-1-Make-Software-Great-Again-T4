@@ -66,7 +66,7 @@
             function showPosition() {
                 $.ajax({
                     type: 'POST',
-                    url: '/ajax/alerta/',
+                    url: '/ajax/alert/',
                     dataType: 'json',
                     data: {
                         lat: window.global_lat,
@@ -226,7 +226,7 @@
                                         },
                                         success: function (data) {
                                             console.log(data['is_active']);
-                                            $('.estado').html(data['is_active'])
+                                            $('.state').html(data['is_active'])
                                         },
                                         /* revert lever if request fails */
                                         error: function () {
@@ -241,7 +241,7 @@
                             </script>
                             <div class="switch" style="margin-left: 80px;">
                                 <label>
-                                    No<input type="checkbox" class="check_in" {% if vendor.activo %}
+                                    No<input type="checkbox" class="check_in" {% if vendor.active %}
                                              checked {% endif %}><span
                                         class="lever"></span>Sí
                                 </label>

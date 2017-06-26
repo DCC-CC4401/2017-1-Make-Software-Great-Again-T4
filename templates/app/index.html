@@ -66,10 +66,10 @@
                             .append(vendor.state === 'A' ? "Activo" : "Inactivo"))
                         .append($('<div id="bodyContent">')
                             .append($('<p>')
-                                .append(vendor.descripcion))
+                                .append(vendor.description))
                             .append(field("Formas de pago", vendor.payment))
-                            .append(field("Horario", vendor.horaIni ?
-                                `${hora(vendor.horaIni)} - ${hora(vendor.horaFin)}` : "Vendedor ambulante"))
+                            .append(field("Horario", vendor.startHour ?
+                                `${hora(vendor.startHour)} - ${hora(vendor.endHour)}` : "Vendedor ambulante"))
                             .append(field("Favorito", vendor.fav ? "Sí" : "No"))
                             .append($('<p style="text-align: right">')
                                 .append($(`<a href="/vendor/${vendor.id}">`)
@@ -133,9 +133,9 @@
 
 {% block filters %}
     <script src="{% static 'js/filters.js' %}"></script>
-    {% if user.tipo == 1 or not user.user.is_authenticated %}
+    {% if user.type == 1 or not user.user.is_authenticated %}
         <li><a class="subheader">Filtros</a></li>
-        {% if user.tipo == 1 %}
+        {% if user.type == 1 %}
             <li>
                 <div class="switch" style="margin-left: 10px;">
                     <label>

@@ -8,7 +8,7 @@
         });
         $ajaxSetup();
 
-        function borrar_producto() {
+        function delete_product() {
             console.log('click');
             $.ajax({
                 type: "POST",
@@ -50,7 +50,7 @@
                             <div class='input-field col s12 m12'>
                                 &ensp;Nombre del producto:
                                 <div class="input-field inline ">
-                                    {{ form.nombre }}
+                                    {{ form.name }}
                                     <label style="text-align: center" for='name'></label>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                             <div class='input-field col s12 m12'>
                                 &ensp;Precio del producto:
                                 <div class="input-field inline">
-                                    {{ form.precio }}
+                                    {{ form.price }}
                                     <label style="text-align: center" for='price'></label>
                                 </div>
                             </div>
@@ -79,7 +79,7 @@
                 <div class='row' style="padding-bottom: 3em">
                     <div class='input-field col s12 m12'>
                         &ensp;Categorias:
-                        {{ form.categorias }}
+                        {{ form.categories }}
                     </div>
                 </div>
 
@@ -87,7 +87,7 @@
                     <div class="col s12">
                         <div class="row">
                             <div class="input-field col s12 m12">
-                                {{ form.descripcion }}
+                                {{ form.description }}
                                 <label for="icon_prefix2">
                                     <div class="row">
                                         <div class="col s6"><i class="material-icons prefix col s3">mode_edit</i></div>
@@ -116,7 +116,7 @@
                                 <p class="center-align">Arrastre y suelte un archivo aquí o haga click</p>
                                 <p class="dropify-error center-align">Sorry, this file is too large</p>
                             </div>
-                            {{ form.imagen }}
+                            {{ form.image }}
                             <button type="button" class="dropify-clear">Remove</button>
                             <div class="dropify-preview"><span class="dropify-render"></span>
                                 <div class="dropify-infos">
@@ -134,7 +134,7 @@
                 </div>
                 <div class='row'>
                     <a href="{% url 'home' %}" class='col m4 btn btn-large waves-effect button red'
-                       onclick="borrar_producto()">Borrar<i
+                       onclick="delete_product()">Borrar<i
                             class="material-icons right">delete</i></a>
                     <a class='col m4 btn btn-large waves-effect button teal red'
                        href="{% url 'home' %}">Cancelar<i
