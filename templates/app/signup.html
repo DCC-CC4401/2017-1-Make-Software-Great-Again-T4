@@ -8,11 +8,8 @@
         });
 
         $(function () {
-            $('#id_tipo').on('change', function () {
-                let selected = $('#id_tipo').find('option:selected').val();
-                //$('#hours').css('visibility', 'visible');
-                //$('#vendor_info').css('visibility', 'visible');
-                //$('#hours').slideUp()
+            $('#id_type').on('change', function () {
+                selected = $('#id_type').find('option:selected').val();
                 if (selected == "0") {
                     $('#hours').slideUp();
                     $('#vendor_info').slideUp();
@@ -49,7 +46,7 @@
                 </div>
 
                 <div class="input-field col s12 m12">
-                    {{ form.tipo }}
+                    {{ form.type }}
                     <label>Tipo de Usuario</label>
                 </div>
 
