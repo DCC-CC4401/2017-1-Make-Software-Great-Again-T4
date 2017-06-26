@@ -9,7 +9,7 @@
 
         $(function () {
             $('#id_type').on('change', function () {
-                selected = $('#id_type').find('option:selected').val();
+                let selected = $('#id_type').find('option:selected').val();
                 if (selected == "0") {
                     $('#hours').slideUp();
                     $('#vendor_info').slideUp();

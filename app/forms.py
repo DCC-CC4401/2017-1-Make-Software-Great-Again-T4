@@ -21,7 +21,7 @@ class EditAccountForm(forms.Form):
     choices = []
     payment_methods = forms.MultipleChoiceField(required=False, choices=choices,
                                                 widget=forms.SelectMultiple(attrs={'class': 'multiple'}))
-    init_hour = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
+    start_hour = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     end_hour = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}), required=False)
     lat = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
     lng = forms.DecimalField(max_digits=10, decimal_places=7, required=False)
