@@ -347,10 +347,10 @@ def update(ven):
     if ven.user.type == 2:
         vendor = SettledVendor.objects.get(user=ven.user)
         now = datetime.time(hour=t.hour, minute=t.minute)
-        if vendor.start_hour <= now <= vendor.end_hour and not vendor.activo:
-            vendor.activo = True
-        if not vendor.start_hour <= now <= vendor.end_hour and vendor.activo:
-            vendor.activo = False
+        if vendor.start_hour <= now <= vendor.end_hour and not vendor.active:
+            vendor.active = True
+        if not vendor.start_hour <= now <= vendor.end_hour and vendor.active:
+            vendor.active = False
         vendor.save()
 
 
@@ -380,12 +380,12 @@ def check_in(request):
     user = BaseUser.objects.get(user=request.user)
     vendor = Vendor.objects.get(user=user)
 
-    if not vendor.activo:
-        vendor.activo = True
+    if not vendor.active:
+        vendor.active = True
         vendor.lat = request.POST.get('lat', 0.0)
         vendor.lng = request.POST.get('lng', 0.0)
     else:
-        vendor.activo = False
+        vendor.active = False
     vendor.save()
     return JsonResponse({
         'is_active': vendor.state()
@@ -421,7 +421,7 @@ class ActiveVendors(View):
 
         for i in SettledVendor.objects.all():
             update(i)
-        active = Vendor.objects.filter(activo=True)
+        active = Vendor.objects.filter(active=True)
         favorites = set(get_favorites())
 
         return JsonResponse([{**vendor.serialize(), **{

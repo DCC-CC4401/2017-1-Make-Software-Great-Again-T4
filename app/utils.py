@@ -44,7 +44,7 @@ def add_ambulant_vendor(data):
     print("Ambulant vendor saved")
 
 
-def create_product(vendedor, data):
+def create_product(vendor, data):
     icon = ProductIcon.objects.get(name=data['icon'])
     p = Product(vendor=vendor, name=data['name'], image=data['image'], icon=icon,
                 description=data['description'], stock=data['stock'], price=data['price'])
@@ -56,7 +56,7 @@ def create_product(vendedor, data):
 
 
 def add_category(cat):
-    p = Category(nombre=cat)
+    p = Category(name=cat)
     p.save()
 
 
