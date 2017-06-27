@@ -6,31 +6,10 @@ from django.contrib.auth.models import User
 from django.db import models
 from polymorphic.models import PolymorphicModel
 
-DIAS = [
-    (1, 'Lunes'),
-    (2, 'Martes'),
-    (3, 'Miércoles'),
-    (4, 'Jueves'),
-    (5, 'Viernes'),
-    (6, 'Sábado'),
-    (7, 'Domingo')
-]
-
-
-class FormasDePago(models.Model):
-    metodo = models.CharField(max_length=50)
-
-    '''
-    Inicializar con
-        (0, 'Efectivo'),
-        (1, 'Tarjeta de Crédito'),
-        (2, 'Tarjeta de Débito'),
-        (3, 'Tarjeta Junaeb'),
-    '''
-
 
 '''
- Campos de User de Django:
+
+ Django User class fields:
     - username
     - password
     - email
@@ -39,61 +18,73 @@ class FormasDePago(models.Model):
 '''
 
 
-# "Extiende" el usuario de Django para agregar tipo y avatar.
-class Usuario(models.Model):
+# "Extends" the Django user to agregate avatar and type.
+class BaseUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    tipos = ((0, 'Admin'), (1, 'Alumno'), (2, 'Vendedor Fijo'), (3, 'Vendedor Ambulante'))
-    tipo = models.IntegerField(choices=tipos)
+    types = ((0, 'Admin'), (1, 'Alumno'), (2, 'Vendedor Fijo'), (3, 'Vendedor Ambulante'))
+    type = models.IntegerField(choices=types)
     avatar = models.ImageField(upload_to='avatars')
 
     def __str__(self):
         return self.user.username
 
-    def imagen(self):
+    def image(self):
         try:
             return '/' + str(self.avatar.url)
         except:
             return '/static/img/' + 'AvatarVendedor3.png'
 
     class Meta:
-        db_table = 'usuario'
+        db_table = 'base_user'
 
 
-class Vendedor(PolymorphicModel):
-    usuario = models.OneToOneField(Usuario)
-    activo = models.BooleanField(default=False, blank=True)
-    formas_pago = models.ManyToManyField(FormasDePago)
+class PaymentMethod(models.Model):
+    method = models.CharField(max_length=50)
+
+    '''
+    Initialize with
+        (0, 'Efectivo'),
+        (1, 'Tarjeta de Crédito'),
+        (2, 'Tarjeta de Débito'),
+        (3, 'Tarjeta Junaeb'),
+    '''
+
+
+class Vendor(PolymorphicModel):
+    user = models.OneToOneField(BaseUser)
+    active = models.BooleanField(default=False, blank=True)
+    payment_methods = models.ManyToManyField(PaymentMethod)
 
     lat = models.DecimalField(default=0, max_digits=10, decimal_places=7)
     lng = models.DecimalField(default=0, max_digits=10, decimal_places=7)
-    numero_favoritos = models.PositiveIntegerField(default=0, editable=False)
+    favorites_counter = models.PositiveIntegerField(default=0, editable=False)
 
     def payment_str(self):
         temp = []
-        for i in self.formas_pago.values():
-            temp.append(i['metodo'])
+        for i in self.payment_methods.values():
+            temp.append(i['method'])
         return ' '.join(temp)
 
-    def estado(self):
-        if self.usuario.tipo == 2:
+    def state(self):
+        if self.user.type == 2:
             t = datetime.datetime.now().time()
             now = datetime.time(hour=t.hour, minute=t.minute)
-            if self.hora_ini <= now <= self.hora_fin:
-                self.activo = True
+            if self.start_hour <= now <= self.end_hour:
+                self.active = True
             else:
-                self.activo = False
+                self.active = False
 
-        return 'Activo' if self.activo else 'Inactivo'
+        return 'Activo' if self.active else 'Inactivo'
 
-    def tipo(self):
-        return 'Vendedor Ambulante' if self.usuario.tipo == 3 else 'Vendedor Fijo'
+    def type(self):
+        return 'Vendedor Ambulante' if self.user.type == 3 else 'Vendedor Fijo'
 
     def serialize(self):
-        products = Producto.objects.filter(vendedor=self)
+        products = Product.objects.filter(vendor=self)
         return {
             'position': {'lat': float(self.lat), 'lng': float(self.lng)},
-            'state': 'A' if self.activo else 'I',
-            'payment': ', '.join(map(lambda pay: pay.metodo, self.formas_pago.all())),
+            'state': 'A' if self.active else 'I',
+            'payment': ', '.join(map(lambda pay: pay.method, self.payment_methods.all())),
             'id': self.id,
             'name': self.name(),
             'avatar': self.avatar(),
@@ -101,43 +92,43 @@ class Vendedor(PolymorphicModel):
         }
 
     def name(self):
-        user = self.usuario.user
+        user = self.user.user
         return "{} {}".format(user.first_name, user.last_name)
 
     def avatar(self):
         try:
-            return '/' + self.usuario.avatar.url
+            return '/' + self.user.avatar.url
         except ValueError:
             return None
 
 
-# Hereda de Vendedor, se añaden horarios.
-class VendedorFijo(Vendedor):
-    hora_ini = models.TimeField(blank=True)
-    hora_fin = models.TimeField(blank=True)
+# Inherites from vendor
+class SettledVendor(Vendor):
+    start_hour = models.TimeField(blank=True)
+    end_hour = models.TimeField(blank=True)
 
     def schedule(self):
-        return self.hora_ini.strftime('%H:%M') + '-' + self.hora_fin.strftime('%H:%M')
+        return self.start_hour.strftime('%H:%M') + '-' + self.end_hour.strftime('%H:%M')
 
     def serialize(self):
         return {**super().serialize(), **{
-            'horaIni': self.hora_ini,
-            'horaFin': self.hora_fin
+            'startHour': self.start_hour,
+            'endHour': self.end_hour
         }}
 
 
-# Mismos atributos de Vendedor
-class VendedorAmbulante(Vendedor):
+# Same attributes as Vendor
+class AmbulantVendor(Vendor):
     pass
 
 
-class Alumno(models.Model):
-    usuario = models.OneToOneField(Usuario)
-    favorites = models.ManyToManyField(Vendedor)
+class Student(models.Model):
+    user = models.OneToOneField(BaseUser)
+    favorites = models.ManyToManyField(Vendor)
 
 
-class Categoria(models.Model):
-    nombre = models.CharField(max_length=50)
+class Category(models.Model):
+    name = models.CharField(max_length=50)
 
 
 # Icons are saved to avoid saving the same image many times.
@@ -149,38 +140,38 @@ class ProductIcon(models.Model):
         return self.icon.url[13:]
 
 
-class Producto(models.Model):
-    vendedor = models.ForeignKey(Vendedor)
-    nombre = models.CharField(max_length=200)
-    icono = models.ForeignKey(ProductIcon)
-    categorias = models.ManyToManyField(Categoria)
-    descripcion = models.TextField(blank=True, max_length=500)
+class Product(models.Model):
+    vendor = models.ForeignKey(Vendor)
+    name = models.CharField(max_length=200)
+    icon = models.ForeignKey(ProductIcon)
+    categories = models.ManyToManyField(Category)
+    description = models.TextField(blank=True, max_length=500)
     stock = models.PositiveSmallIntegerField(default=0)
-    precio = models.PositiveSmallIntegerField(default=0)
-    imagen = models.ImageField(upload_to="productos")
+    price = models.PositiveSmallIntegerField(default=0)
+    image = models.ImageField(upload_to="products")
 
     def __str__(self):
-        return self.nombre
+        return self.name
 
     def category2str(self):
         temp = []
-        for i in self.categorias.values():
-            temp.append(i['nombre'])
+        for i in self.categories.values():
+            temp.append(i['name'])
         return ' '.join(temp)
 
     def serialize(self):
         return {
-            'categories': [category.nombre
-                           for category in self.categorias.all()],
+            'categories': [category.name
+                           for category in self.categories.all()],
             'stock': self.stock
         }
 
     class Meta:
-        db_table = 'producto'
+        db_table = 'product'
 
 
 '''
-Inicializar con:
+Initialize with:
         (
         (0, 'Cerdo'),
         (1, 'Chino'),
@@ -203,23 +194,23 @@ Inicializar con:
 '''
 
 
-class Transacciones(models.Model):
-    vendedor = models.ForeignKey(Vendedor)
-    producto = models.ForeignKey(Producto)
-    cantidad = models.IntegerField()
-    fecha = models.DateField()
+class Transactions(models.Model):
+    vendor = models.ForeignKey(Vendor)
+    product = models.ForeignKey(Product)
+    amount = models.IntegerField()
+    date = models.DateField()
 
     class Meta:
-        db_table = 'transacciones'
+        db_table = 'transactions'
 
 
-class Alerta(models.Model):
-    usuario = models.ForeignKey(Usuario)
+class Alert(models.Model):
+    user = models.ForeignKey(BaseUser)
     posX = models.FloatField()
     posY = models.FloatField()
 
 
 class Token(models.Model):
-    vendedor = models.ForeignKey(Vendedor)
+    vendor = models.ForeignKey(Vendor)
     code = models.CharField(max_length=150)
     token = models.CharField(max_length=1024)

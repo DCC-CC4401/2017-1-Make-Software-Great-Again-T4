@@ -40,7 +40,7 @@
 
     </script>
     <script>
-        {% if user.tipo >= 1 %}
+        {% if user.type >= 1 %}
             window.global_lat = 0;
             window.global_lng = 0;
 
@@ -66,7 +66,7 @@
             function showPosition() {
                 $.ajax({
                     type: 'POST',
-                    url: '/ajax/alerta/',
+                    url: '/ajax/alert/',
                     dataType: 'json',
                     data: {
                         lat: window.global_lat,
@@ -76,7 +76,7 @@
             }
 
 
-            {% if user.tipo == 3 %}
+            {% if user.type == 3 %}
                 function randomCode() {
                     let hash = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012346789";
                     let random8 = '';
@@ -185,7 +185,7 @@
                                          src="{% static 'img/AvatarPenguin.png' %}"></a>
                     {% else %}
                         <a href="#"><img style="margin-top: 16%;" class="circle"
-                                         src="{{ user.imagen }}"></a>
+                                         src="{{ user.image }}"></a>
                     {% endif %}
 
                     <a href="#"><span style="margin-left: 5%;"
@@ -201,7 +201,7 @@
                     <li><a href="{% url 'home' %}"><i class="material-icons">home</i>Inicio</a></li>
                     <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Cerrar Sesión</a>
                     </li>
-                    {% if user.tipo >= 2 %}
+                    {% if user.type >= 2 %}
                         <li><a href="{% url 'stock' %}"><i class="material-icons">list</i>Editar Stock</a></li>
                         <li><a href="{% url 'stats' %}"><i
                                 class="material-icons">trending_up</i>Estadísticas</a>
@@ -210,7 +210,7 @@
                     <li>
                         <div class="divider"></div>
                     </li>
-                    {% if user.tipo == 3 %}
+                    {% if user.type == 3 %}
                         <li><a class="subheader">Activo</a></li>
                         <li>
                             <script>
@@ -226,7 +226,7 @@
                                         },
                                         success: function (data) {
                                             console.log(data['is_active']);
-                                            $('.estado').html(data['is_active'])
+                                            $('.state').html(data['is_active'])
                                         },
                                         /* revert lever if request fails */
                                         error: function () {
@@ -241,7 +241,7 @@
                             </script>
                             <div class="switch" style="margin-left: 80px;">
                                 <label>
-                                    No<input type="checkbox" class="check_in" {% if vendor.activo %}
+                                    No<input type="checkbox" class="check_in" {% if vendor.active %}
                                              checked {% endif %}><span
                                         class="lever"></span>Sí
                                 </label>
@@ -250,7 +250,7 @@
                     {% endif %}
                 {% endif %}
                 {% block filters %} {% endblock %}
-                {% if user.tipo >= 1 %}
+                {% if user.type >= 1 %}
                     <li><a href="#modal0"><i class="material-icons">warning</i>Enviar Alerta</a></li>
                 {% endif %}
 
@@ -259,7 +259,7 @@
     </header>
 
     <main>
-        {% if user.tipo >= 1 %}
+        {% if user.type >= 1 %}
             <div id="modal0" class="modal">
                 <div class="modal-content">
                     <h4>¿ Esta Seguro que quiere lanzar una alerta?</h4>

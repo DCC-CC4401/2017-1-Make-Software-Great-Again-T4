@@ -44,22 +44,22 @@
                 </div>
                 <div class="row hide-on-small-and-down">
                     <a class="card-profile-image-large">
-                        <img style="margin-top: 20%;" src="{{ vendor.usuario.imagen }}" alt="profile image"
+                        <img style="margin-top: 20%;" src="{{ vendor.user.image }}" alt="profile image"
                              class="circle z-depth-2 responsive-img activator">
                     </a>
                 </div>
                 <div class="row show-on-small hide-on-med-and-up">
                     <a class="card-profile-image-small">
-                        <img src="{{ vendor.usuario.imagen}}" alt="profile image"
+                        <img src="{{ vendor.user.image}}" alt="profile image"
                              class="circle z-depth-2 responsive-img activator">
                     </a>
                 </div>
                 <div class="card-content s12 hide-on-med-and-down">
                     <div class="row">
                         <div class="col s3 offset-s2 center ">
-                            <h4 class="card-title grey-text flow-text text-darken-4 center-align">{{ vendor.usuario.user.first_name }} &ensp;{{ vendor.usuario.user.last_name }}</h4>
-                            <p class="medium-small flow-text grey-text center-align">{{ vendor.tipo }}</p>
-                            {% if vendor.usuario.tipo == 2 %}
+                            <h4 class="card-title grey-text flow-text text-darken-4 center-align">{{ vendor.user.user.first_name }} &ensp;{{ vendor.user.user.last_name }}</h4>
+                            <p class="medium-small flow-text grey-text center-align">{{ vendor.type }}</p>
+                            {% if vendor.user.type == 2 %}
                             <p class="flow-text text-darken-4 center-align" style="font-size: 0.88rem;">
                                 Horario: <a class="light-green-text center-align">{{ schedule }}</a>
                             </p>
@@ -67,7 +67,7 @@
                         </div>
                         <div class="col l2 center-align">
                             <h4 class="card-title flow-text text-darken-4">Estado</h4>
-                            <p class="medium-small flow-text light-green-text estado">{{ vendor.estado }}</p>
+                            <p class="medium-small flow-text light-green-text estado">{{ vendor.state }}</p>
                         </div>
                         <div class="col 13 center-align">
                             <h4 class=" grey-text flow-text text-darken-4" style="font-size: 1.3rem;">Formas de pago
@@ -81,12 +81,12 @@
                                     {% if is_fav %}
                                         <h6 onclick="like()"><i class="material-icons amber-text" id="star0">grade</i>
                                             <span class=" grey-text flow-text text-darken-4"
-                                                  style="font-size:24px; line-height:35px;" id="like0">{{ vendor.numero_favoritos }}</span>
+                                                  style="font-size:24px; line-height:35px;" id="like0">{{ vendor.favorites_counter }}</span>
                                         </h6>
                                     {% else %}
                                         <h6 onclick="like()"><i class="material-icons" id="star0">grade</i>
                                             <span class=" grey-text flow-text text-darken-4"
-                                                  style="font-size:24px; line-height:35px;" id="like0">{{ vendor.numero_favoritos }}</span>
+                                                  style="font-size:24px; line-height:35px;" id="like0">{{ vendor.favorites_counter }}</span>
                                         </h6>
                                     {% endif %}
 
@@ -98,9 +98,9 @@
 
                 <div class="row show-on-medium-and-down hide-on-med-and-up">
                     <div class="col s4 offset-s2">
-                        <h4 class="card-title grey-text flow-text text-darken-4">{{ vendor.usuario.user.first_name }} &ensp;{{ vendor.usuario.user.last_name }}</h4>
+                        <h4 class="card-title grey-text flow-text text-darken-4">{{ vendor.user.user.first_name }} &ensp;{{ vendor.user.user.last_name }}</h4>
                         <p class="medium-small flow-text grey-text">{{ vendor.tipo }}</p>
-                        {% if vendor.usuario.tipo == 2 %}
+                        {% if vendor.user.type == 2 %}
                         <p class="flow-text text-darken-4" style="font-size: 0.88rem;">
                             Horario: <a class="light-green-text">{{ schedule }}</a>
                         </p>
@@ -113,12 +113,12 @@
                                 {% if is_fav %}
                                     <h6 onclick="like()"><i class="material-icons amber-text" id="star1">grade</i>
                                         <span class=" grey-text flow-text text-darken-4"
-                                              style="font-size:22px; line-height:25px;" id="like1">{{ vendor.numero_favoritos }}</span>
+                                              style="font-size:22px; line-height:25px;" id="like1">{{ vendor.favorites_counter }}</span>
                                     </h6>
                                 {% else %}
                                     <h6 onclick="like()"><i class="material-icons" id="star1">grade</i>
                                         <span class=" grey-text flow-text text-darken-4"
-                                              style="font-size:22px; line-height:25px;" id="like1">{{ vendor.numero_favoritos }}</span>
+                                              style="font-size:22px; line-height:25px;" id="like1">{{ vendor.favorites_counter }}</span>
                                     </h6>
                                 {% endif %}
 
@@ -127,7 +127,7 @@
                     </div>
                     <div class="col s3 m2 l12 offset-s1">
                         <p class="flow-text text-darken-4">Estado</p>
-                        <p class="medium-small flow-text light-green-text estado">{{ vendor.estado }}</p>
+                        <p class="medium-small flow-text light-green-text estado">{{ vendor.state }}</p>
                     </div>
 
                     <div class="col s3 m2 l12 offset-s1"> <!--offset-s2-->
@@ -156,17 +156,17 @@
                                 <div class="teal lighten-2 card-image waves-effect waves-block waves-light">
                                     <img class="activator responsive-img center-block"
                                          style="max-width: 30%; margin-top:20px; margin-bottom:20px;"
-                                         src="{% static product.icono.url %}">
+                                         src="{% static product.icon.url %}">
                                 </div>
                                 <div class="card-content">
-                <span class="card-title activator grey-text text-darken-4">{{ product.nombre }}
+                <span class="card-title activator grey-text text-darken-4">{{ product.name }}
                     <i class="material-icons right">more_vert</i></span>
-                                    <p><a class="teal-text">{{ product.precio }}</a></p>
+                                    <p><a class="teal-text">{{ product.price }}</a></p>
 
                                     <div id="modal{{ product.id }}" class="modal">
                                         <div class="modal-content">
                                             <img class="activator responsive-img center-block"
-                                                 src="/media/{{ product.imagen }}">
+                                                 src="/media/{{ product.image }}">
                                         </div>
                                         <div class="modal-footer">
                                             <a href="#"
@@ -176,13 +176,13 @@
                                     </div>
                                 </div>
                                 <div class="card-reveal">
-                <span class="card-title grey-text text-darken-4">{{ product.nombre }}
+                <span class="card-title grey-text text-darken-4">{{ product.name }}
                     <i class="material-icons right">close</i></span>
                                     <ul>
-                                        <li>Precio: <a class="green-text light-green-text">${{ product.precio }}</a></li>
+                                        <li>Precio: <a class="green-text light-green-text">${{ product.price }}</a></li>
                                         <li>Categoria: {{ product.category2str }}</li>
                                         <li>Stock: {{ product.stock }}</li>
-                                        <li>Descripción: {{ product.descripcion }}
+                                        <li>Descripción: {{ product.description }}
                                             <div class="row">
                                                 <p class="right-align col m6"><a class="waves-effect waves-light"
                                                                                  href="#modal{{ product.id }}">Ver imagen</a>
