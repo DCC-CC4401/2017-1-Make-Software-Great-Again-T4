@@ -83,25 +83,24 @@ def add_stat(data):
     products = Product.objects.filter(vendor=vendor).filter(name=data['product_name'])
     if products.count() != 0:
         product = Product.objects.filter(vendor=vendor).filter(name=data['product_name']).first()
-        p = Transactions.objects.create(vendor=vendor, date=data['date'],  amount=data['amount'], product=product)
+        p = Transactions.objects.create(vendor=vendor, date=data['date'], amount=data['amount'], product=product)
         p.save()
-
 
 
 def password_confirmed(data):
     return data['password'] != data['repassword']
 
 
-def create_user(type, form):
+def create_user(typ, form):
     """
     Envia a los datos a la funcion de crear usuario correspondiente.
-    :param type: String (Numero entre 1 - 3)
+    :param typ: String (Numero entre 1 - 3)
     :param form: instancia de clase SignUpForm
     :return:
     """
-    if type == "1":
-        add_user(form.cleaned_data)
-    if type == "2":
+    if typ == "1":
+        add_buyer(form.cleaned_data)
+    if typ == "2":
         print(form.cleaned_data)
         if form.cleaned_data['start_hour'] is None:
             raise KeyError('Ingresa hora de inicio')
@@ -110,7 +109,7 @@ def create_user(type, form):
         if form.cleaned_data['lat'] is None or form.cleaned_data['lng'] is None:
             raise KeyError('Ingresa posición en el mapa')
         add_settled_vendor(form.cleaned_data)
-    if type == "3":
+    if typ == "3":
         add_ambulant_vendor(form.cleaned_data)
 
 
