@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from pyfcm import FCMNotification
 
 from app.forms import LoginForm, EditAccountForm, AddProductForm, EditProductForm, SignUpForm
@@ -209,6 +210,7 @@ class EditAccount(View):
         user = BaseUser.objects.get(user=request.user)
         user.user.first_name = form.cleaned_data['first_name']
         user.user.last_name = form.cleaned_data['last_name']
+        user.user.save()
         if form.cleaned_data['avatar'] is not None:
             user.avatar = form.cleaned_data['avatar']
         user.save()
