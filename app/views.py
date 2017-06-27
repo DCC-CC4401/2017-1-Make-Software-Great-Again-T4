@@ -215,15 +215,15 @@ class EditAccount(View):
         try:
             vendor = Vendor.objects.get(user=user)
             pay = form.cleaned_data['payment_methods']
-            vendor.formas_pago.clear()
+            vendor.payment_methods.clear()
             for i in pay:
-                vendor.formas_pago.add(PaymentMethod.objects.get(method=i))
+                vendor.payment_methods.add(PaymentMethod.objects.get(method=i))
             if user.type == 2:
                 vendor.lat = form.cleaned_data['lat']
                 vendor.lng = form.cleaned_data['lng']
             vendor.save()
             svendor = SettledVendor.objects.get(user=user)
-            svendor.hora_ini = form.cleaned_data['start_hour']
+            svendor.start_hour = form.cleaned_data['start_hour']
             svendor.end_hour = form.cleaned_data['end_hour']
             svendor.save()
         finally:
