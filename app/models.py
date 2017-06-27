@@ -80,7 +80,7 @@ class Vendor(PolymorphicModel):
         return 'Vendedor Ambulante' if self.user.type == 3 else 'Vendedor Fijo'
 
     def serialize(self):
-        products = Product.objects.filter(vendedor=self)
+        products = Product.objects.filter(vendor=self)
         return {
             'position': {'lat': float(self.lat), 'lng': float(self.lng)},
             'state': 'A' if self.active else 'I',
