@@ -1,88 +1,282 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/css/materialize.min.css">
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 
     <!--Import jQuery before materialize.js-->
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script type="text/javascript" src="../static/fb.js"></script>
+    <!--<script type="text/javascript" src=""></script> -->
 
     <!-- Compiled and minified JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.1/js/materialize.min.js"></script>
-    <script src="http://materializecss.com/templates/starter-template/js/init.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/js/materialize.min.js"></script>
+    <!--<script src="http://materializecss.com/templates/starter-template/js/init.js"></script>-->
 
-    <nav class="top-nav">
-        <div class="nav-wrapper teal lighten-1">
-            <a href="#" class="brand-logo right"><img style="max-height: 65px!important;  padding: 8px 0!important;" class="circle" src="../static/img/logo.png"></a>
-          <div class="navbar-fixed">
-            <a href="#" data-activates="slide-out"
-               class="left button-collapse btn-floating btn-large waves-effect waves-light"><i
-                    class="material-icons">menu</i></a>
-            <a class="center page-title"></a>
-          </div>
-            <ul id="slide-out" class="side-nav fixed leftside-navigation ps-container ps-active-y">
-                <li>
-                    <div class="userView">
-                    <i class="material-icons right grey-text text-lighten-2" style="position: absolute; bottom: -0.5em; right: 0.5em; padding: 0 0 !important;">settings</i>
-                  <div class="background" style="height:175px;">
-                    <img src="../static/img/background4.png">
-                  </div>
-                  <a href="#!user"><img style="margin-top: 16%;" class="circle" src="../static/img/AvatarPenguin.png"></a>
-                  <a href="#!name"><span style="margin-left: 5%;" class="white-text name">Invitado</span></a>
-                </div>
-                </li>
-                <li><a href="{% url 'index' %}"><i class="material-icons">home</i>Inicio</a></li>
-                <li><a href="{% url 'login' %}"><i class="material-icons">account_circle</i>Iniciar Sesión</a></li>
-                <!--<li><a href=""><i class="material-icons">exit_to_app</i>Cerrar Sesión</a></li>-->
-                <!--<li><div class="divider"></div></li>
-                <li><a class="subheader">Activo</a></li>
-                <li>
-                    <div class="switch" style="margin-left: 80px;">
-                        <label>
-                            No<input type="checkbox"><span class="lever"></span>Si
-                        </label>
-                    </div>
-                </li>
-                <li><a class="subheader">Filtros</a></li>
-                <li>
-                    <div class="switch" style="margin-left: 10px;">
-                        <label>
-                            <input type="checkbox"><span class="lever"></span>Sólo mostrar favoritos
-                        </label>
-                    </div>
-                </li>
-                <li>
-                    <div class="switch" style="margin-left: 10px;">
-                        <label>
-                            <input type="checkbox"><span class="lever"></span>Snacks
-                        </label>
-                    </div>
-                </li>
-                <li>
-                    <div class="switch" style="margin-left: 10px;">
-                        <label>
-                            <input type="checkbox"><span class="lever"></span>Almuerzos
-                        </label>
-                    </div>
-                </li>-->
-            </ul>
-        </div>
-    </nav>
+    <!-- Ramda for functional programming patterns -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ramda/0.24.1/ramda.min.js"
+            integrity="sha256-yF1J6hzNIWN398K1d+n1XXGC3JEchH55G05dxM+rsFk=" crossorigin="anonymous"></script>
+
+    {% load static %}
+    <script src="{% static "js/cookies.js" %}"></script>
+    <script src="https://js.pusher.com/4.0/pusher.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <link rel="manifest" href="{% static 'js/manifest.json' %}">
+    <script>
+        $(document).ready(function () {
+            // the "href" attribute of .modal-trigger must specify the modal ID that wants to be triggered
+            $('.button-collapse').sideNav();
+            $('.modal').modal();
+
+        });
+
+    </script>
+    <script>
+        {% if user.type >= 1 %}
+            window.global_lat = 0;
+            window.global_lng = 0;
+
+            function geo(pos) {
+                window.global_lat = pos.coords.latitude;
+                window.global_lng = pos.coords.longitude
+            }
+            $(document).ready(function () {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(geo);
+                }
+                else {
+                    alert("Tu dispositivo no tiene GPS activado");
+                }
+            });
+            $(function () {
+                $('.button-collapse').sideNav();
+            });
+            $ajaxSetup();
+            function getLocation() {
+                showPosition()
+            }
+            function showPosition() {
+                $.ajax({
+                    type: 'POST',
+                    url: '/ajax/alert/',
+                    dataType: 'json',
+                    data: {
+                        lat: window.global_lat,
+                        lng: window.global_lng,
+                    }
+                })
+            }
+
+
+            {% if user.type == 3 %}
+                function randomCode() {
+                    let hash = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012346789";
+                    let random8 = '';
+                    for (let i = 0; i < 128; i++) {
+                        random8 += hash[parseInt(Math.random() * hash.length)];
+                    }
+                    return random8;
+                }
+                toastr.options.closeDuration = 1000;
+                toastr.options.fadeOut = 5000;
+
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('{% static 'js/firebase-messaging-sw.js' %}', {scope: '/static/js/'})
+                        .then((registration) => {
+                            console.log('Registration succeeded. Scope is ' + registration.scope);
+                            const config = {
+                                apiKey: "AIzaSyCeslgWEPN0XIpsbO1AJ1HyORXqhRciOFA",
+                                authDomain: "beau-chef.firebaseapp.com",
+                                databaseURL: "https://beau-chef.firebaseio.com",
+                                projectId: "beau-chef",
+                                storageBucket: "beau-chef.appspot.com",
+                                messagingSenderId: "746470197160"
+                            };
+                            firebase.initializeApp(config);
+                            const messaging = firebase.messaging();
+                            messaging.useServiceWorker(registration);
+                            messaging.requestPermission()
+                                .then(function () {
+                                    console.log('Notification permission granted.');
+                                    if (!localStorage.id) {
+                                        localStorage.id = randomCode();
+                                    }
+                                    getTokenAndSend();
+
+                                })
+                                .catch(function (err) {
+                                    console.log('Unable to get permission to notify.', err);
+                                });
+
+                            function getTokenAndSend() {
+                                messaging.getToken()
+                                    .then(function (currentToken) {
+                                        console.log(currentToken);
+                                        if (currentToken) {
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/ajax/token/',
+                                                dataType: 'json',
+                                                data: {
+                                                    id: localStorage.id,
+                                                    token: currentToken,
+                                                }
+                                            })
+                                        } else {
+                                            console.log('No Instance ID token available. Request permission to generate one.');
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        console.log('An error occurred while retrieving token. ', err);
+                                    });
+                            }
+
+                            messaging.onMessage(function (payload) {
+                                console.log("Message received. ", payload);
+                                toastr.warning(payload.notification.body, {timeOut: 10000});
+                                navigator.vibrate([2000, 2000, 2000]);
+                            });
+                        }).catch(function (error) {
+                        // registration failed
+                        console.log('Registration failed with ' + error);
+                    });
+                }
+            {% endif %}
+        {% endif %}
+    </script>
+
 
 </head>
 
 <body>
+<div id="wrapper">
+    <header>
+        <nav class="top-nav">
+            <div class="nav-wrapper teal lighten-1">
+                <a href="#" class="brand-logo right"><img
+                        style="max-height: 65px!important;  padding: 8px 0!important;"
+                        class="circle" src="{% static 'img/logo.png' %}"></a>
+                <a href="#" data-activates="slide-out"
+                   class="left button-collapse btn-floating btn-large waves-effect waves-light"><i
+                        class="material-icons">menu</i></a>
+                <a class="center page-title"></a>
+            </div>
+        </nav>
+        <div id="slide-out" class="side-nav fixed leftside-navigation ps-container ps-active-y">
+            <ul style="margin-top: 0">
+                <div class="userView">
+                    {% if user.user.is_authenticated %}
+                        <a href="{% url 'edit_account' %}"><i class="material-icons right grey-text text-lighten-2"
+                                                              style="position: absolute; bottom: 0.5em; right: 0.5em; padding: 0 0 !important;">settings</i></a>
+                    {% endif %}
+                    <div class="background" style="height:175px;">
+                        <img src="{% static "img/background4.png" %}">
+                    </div>
+                    {% if not user.user.is_authenticated %}
+                        <a href="#"><img style="margin-top: 16%;" class="circle"
+                                         src="{% static 'img/AvatarPenguin.png' %}"></a>
+                    {% else %}
+                        <a href="#"><img style="margin-top: 16%;" class="circle"
+                                         src="{{ user.image }}"></a>
+                    {% endif %}
 
-{% block content %}
-{% endblock %}
+                    <a href="#"><span style="margin-left: 5%;"
+                                      class="white-text name">{{ user.user.username|default:"Invitado" }}</span></a>
+                </div>
 
+                <li style="padding-top: 0.5em"></li>
+                {% if not user.user.is_authenticated %}
+                    <li><a href="{% url 'index' %}"><i class="material-icons">home</i>Inicio</a></li>
+                    <li><a href="{% url 'login' %}"><i class="material-icons">account_circle</i>Iniciar
+                        Sesión</a></li>
+                {% else %}
+                    <li><a href="{% url 'home' %}"><i class="material-icons">home</i>Inicio</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Cerrar Sesión</a>
+                    </li>
+                    {% if user.type >= 2 %}
+                        <li><a href="{% url 'stock' %}"><i class="material-icons">list</i>Editar Stock</a></li>
+                        <li><a href="{% url 'stats' %}"><i
+                                class="material-icons">trending_up</i>Estadísticas</a>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <div class="divider"></div>
+                    </li>
+                    {% if user.type == 3 %}
+                        <li><a class="subheader">Activo</a></li>
+                        <li>
+                            <script>
+                                //$ajaxSetup();
+                                function check_in() {
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/ajax/check_in/',
+                                        dataType: 'json',
+                                        data: {
+                                            lat: window.global_lat,
+                                            lng: window.global_lng
+                                        },
+                                        success: function (data) {
+                                            console.log(data['is_active']);
+                                            $('.state').html(data['is_active'])
+                                        },
+                                        /* revert lever if request fails */
+                                        error: function () {
+                                            const $checkbox = $('.check_in');
+                                            $checkbox.prop('checked', !$checkbox.prop('checked'));
+                                        }
+                                    })
+                                }
+                                $(function () {
+                                    $('.check_in').click(check_in);
+                                });
+                            </script>
+                            <div class="switch" style="margin-left: 80px;">
+                                <label>
+                                    No<input type="checkbox" class="check_in" {% if vendor.active %}
+                                             checked {% endif %}><span
+                                        class="lever"></span>Sí
+                                </label>
+                            </div>
+                        </li>
+                    {% endif %}
+                {% endif %}
+                {% block filters %} {% endblock %}
+                {% if user.type >= 1 %}
+                    <li><a href="#modal0"><i class="material-icons">warning</i>Enviar Alerta</a></li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        {% if user.type >= 1 %}
+            <div id="modal0" class="modal">
+                <div class="modal-content">
+                    <h4>¿ Esta Seguro que quiere lanzar una alerta?</h4>
+
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat"
+                       onclick="getLocation()">Aceptar</a>
+                    <a href="#" class="modal-action modal-close waves-effect waves-green btn-flat">Cancelar</a>
+                </div>
+            </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+
+</div>
 </body>
 
 </html>

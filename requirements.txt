@@ -1,3 +1,6 @@
+pyfcm
+geopy
 django
 Pillow
 python-dateutil
+django-polymorphic
