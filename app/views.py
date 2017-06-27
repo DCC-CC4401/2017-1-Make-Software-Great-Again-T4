@@ -115,7 +115,7 @@ def stats(request):
         charts = {
             'today': {
                 'products': [i['product__name'] for i in earnings_per_product_today],
-                'amounts': ['cash_amount'] + [i['total'] for i in earnings_per_product_today]
+                'amounts': ['monto'] + [i['total'] for i in earnings_per_product_today]
             },
         }
         return render(request, 'app/stats.html', {'user': user, 'vendor': vendor, 'charts': charts,
@@ -481,7 +481,7 @@ def interval_chart(request):
             earnings[days[j['date']]][1] += j['cash_amount']
         data = {
             'dates': ['x'] + [i[0] for i in earnings][::-1],
-            'amounts': ['cash_amount'] + [j[1] for j in earnings][::-1]
+            'amounts': ['monto'] + [j[1] for j in earnings][::-1]
         }
         return JsonResponse(data)
     except:
