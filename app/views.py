@@ -291,31 +291,37 @@ class AddProduct(View):
             self.choices.append((i['name'], i['name']))
 
     def get(self, request):
-        user = BaseUser.objects.get(user=request.user)
-        form = AddProductForm()
-        form.fields['categories'].choices = self.choices
-        return render(request, 'app/add_product.html', {'form': form, 'user': user})
+        try:
+            user = BaseUser.objects.get(user=request.user)
+            form = AddProductForm()
+            form.fields['categories'].choices = self.choices
+            return render(request, 'app/add_product.html', {'form': form, 'user': user})
+        except:
+            return HttpResponseRedirect(reverse('home'))
 
     def post(self, request):
         from app.utils import create_product
-        user = BaseUser.objects.get(user=request.user)
-        vendor = Vendor.objects.get(user=user)
-        form = AddProductForm(request.POST, request.FILES)
-        form.fields['categories'].choices = self.choices
-        if form.is_valid():
-            icon = request.POST.get('icon-button')
-            if icon is None:
-                # Set default
-                icon = 'bread'
-            form.cleaned_data['icon'] = icon
-            create_product(vendor, form.cleaned_data)
-
-            return HttpResponseRedirect(reverse('home'))
-        else:
-            form = AddProductForm()
+        try:
+            user = BaseUser.objects.get(user=request.user)
+            vendor = Vendor.objects.get(user=user)
+            form = AddProductForm(request.POST, request.FILES)
             form.fields['categories'].choices = self.choices
-            return render(request, 'app/add_product.html',
-                          {'error_message': 'Hubo un error con el formulario', 'form': form, 'user': request.user})
+            if form.is_valid():
+                icon = request.POST.get('icon-button')
+                if icon is None:
+                    # Set default
+                    icon = 'bread'
+                form.cleaned_data['icon'] = icon
+                create_product(vendor, form.cleaned_data)
+
+                return HttpResponseRedirect(reverse('home'))
+            else:
+                form = AddProductForm()
+                form.fields['categories'].choices = self.choices
+                return render(request, 'app/add_product.html',
+                              {'error_message': 'Hubo un error con el formulario', 'form': form, 'user': request.user})
+        except:
+            return HttpResponseRedirect(reverse('home'))
 
 
 def vendor_info(request, pid):
@@ -497,7 +503,8 @@ def alert(request):
             message_title = "Beau-Chef"
             message_body = "Vienen los Carabineros"
             push_service.notify_multiple_devices(registration_ids=registration_ids,
-                                                 message_title=message_title, message_body=message_body)
+                                                 message_title=message_title, message_body=message_body,
+                                                 message_icon='/static/img/Notificacion.png')
             return JsonResponse({})
         except:
             return render(request, 'app/index.html')
