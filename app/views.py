@@ -468,7 +468,7 @@ def interval_chart(request):
             days[key] = i
             earnings[i] = ([key.strftime('%d-%m-%Y'), 0])
         earnigs_per_day = [i for i in transactions.filter(
-            date__gte=low, date__lte=high).values('date').annotate(monto=Sum('quantity'))]
+            date__gte=low, date__lte=high).values('date').annotate(cash_amount=Sum('amount'))]
         for j in earnigs_per_day:
             earnings[days[j['date']]][1] += j['cash_amount']
         data = {
